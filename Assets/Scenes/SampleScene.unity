@@ -2822,6 +2822,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tableData: {fileID: 0}
+  videoResourcePath: E:\0th\Videos
   videoPlayer: {fileID: 1606090848}
   playlist: []
   transitionController: {fileID: 793502888}
@@ -2874,7 +2875,7 @@ GameObject:
   - component: {fileID: 793502887}
   - component: {fileID: 793502888}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: TransitionGameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

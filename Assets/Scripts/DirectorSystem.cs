@@ -1,14 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 using UnityEngine.Video;[RequireComponent(typeof(VideoPlayer))]
+
 
 [System.Serializable]
 public class VideoData
 {
     //public string videoName; // 视频名称或ID（没用到）
     public VideoClip clip;   // 视频文件（如果通过拖拽或Resources加载）
-    //public string videoUrl;  // 视频路径（如果通过绝对路径/URL加载，比如StreamingAssets，暂时用不到）
+    public string videoUrl;  // 视频路径（如果通过绝对路径/URL加载，比如StreamingAssets，暂时用不到）
 
     public string id; // 唯一标识符，方便引用
 
@@ -31,8 +33,18 @@ public class DirectorSystem : MonoBehaviour
     //[System.Serializable]
     public TextAsset tableData; // 用于存储表格数据的文本资产（CSV/JSON）
 
+    [Header("是否用绝对路径加载")]
+    public bool useAbsolutePath = true; // 是否使用绝对路径加载视频资源（如果为false，则使用Resources加载）
+
+
+    [Header("视频加载位置")]
+    public string videoResourcePath = @"E:\0th\Videos"; // 视频资源的路径（相对于 Resources 文件夹）
+
     [Header("播放器引用")]
     public VideoPlayer videoPlayer;
+
+
+
 
     [Header("播放列表")]
     public List<VideoData> playlist = new List<VideoData>();
@@ -121,11 +133,36 @@ public class DirectorSystem : MonoBehaviour
 
     public void LinkVideoResources()
     {
+        if (useAbsolutePath)
+        {
+            // 如果使用绝对路径加载视频资源，直接在播放时设置 URL 即可，无需预先加载 VideoClip
+            foreach (VideoData data in playlist)
+            {
+                string fileName = data.id + "_Video.mp4";
+                string absolutePath = Path.Combine(videoResourcePath, fileName);
+                if (File.Exists(absolutePath))
+                {
+                    data.videoUrl = absolutePath;
+                    Debug.Log($"已设置视频 URL：{absolutePath}");
+                }
+                else
+                {
+                    Debug.LogWarning($"未找到视频文件：{absolutePath}，请检查路径和文件名！");
+                }
+            }
+
+            Debug.Log("使用绝对路径加载视频资源，将在播放时设置 URL。");
+            return;
+        }
         foreach (VideoData data in playlist)
         {
             // 假设视频资源命名规则为 "Video_{id}"，并放在 Resources/Videos 文件夹下
-            string resourcePath = $"Videos/{data.id}_Video";
+            string fileName = data.id +"_Video.mp4";
+            string resourcePath = Path.Combine(videoResourcePath, fileName);
+            
             VideoClip clip = Resources.Load<VideoClip>(resourcePath);
+
+
             if (clip != null)
             {
                 data.clip = clip;
@@ -218,6 +255,11 @@ public class DirectorSystem : MonoBehaviour
         {
             videoPlayer.source = VideoSource.VideoClip;
             videoPlayer.clip = currentData.clip;
+        }
+        else if (!string.IsNullOrEmpty(currentData.videoUrl))
+        {
+            videoPlayer.source = VideoSource.Url;
+            videoPlayer.url = currentData.videoUrl;
         }
         else
         {
