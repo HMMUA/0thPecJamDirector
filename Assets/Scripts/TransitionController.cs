@@ -6,6 +6,7 @@ public class TransitionController : MonoBehaviour
 {
     public Animator transitionAnimator; // 过渡动画控制器引用
     public DirectorSystem directorSystem; // 导演系统引用
+    public CanvasinfoController canvasinfoController; // Canvas信息控制器引用
 
 
     public SpriteRenderer[] image;//曲绘
@@ -47,7 +48,7 @@ public class TransitionController : MonoBehaviour
     {
         string id = videoData.id;
 
-        
+
         for (int i = 0; i < image.Length; i++)
         {
             image[i].sprite = Resources.Load<Sprite>($"Texture/{id}");//曲绘
@@ -118,5 +119,14 @@ public class TransitionController : MonoBehaviour
     public void EndTransition()
     {
         directorSystem.PlayNextVideo();
+    }
+    public void HideCanvasInfo()
+    {
+        canvasinfoController.HideInfo();
+    }
+
+    public void ShowCanvasInfo( )
+    {
+        canvasinfoController.ShowInfo();
     }
 }

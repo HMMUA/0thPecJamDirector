@@ -53,7 +53,7 @@ public class DirectorSystem : MonoBehaviour
     public float preEndTriggerTime = 2.5f; // 触发预留函数的时间点（单位：秒）
 
     // 当前播放的索引
-    private int currentIndex = -1;
+    public int currentIndex = -1;
     
     // 标记：当前视频是否已经触发过“倒数3秒”事件
     private bool hasTriggeredPreEnd = false;
