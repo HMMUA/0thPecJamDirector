@@ -1,0 +1,4 @@
+﻿id,stage,number,isBlackHourse,isInterval,artist,title,designer,isLoop
+test01,inner,1,0,0,artist1,1,小a,0
+test02,inner,2,0,0,新的作曲者,超级歌曲,小b,0
+test03,inner,3,0,0,NewArtist,瞬間、シンフォニー。 (A Symphony of Moments),40mP (40㍍P)/夏吉ゆうこ,0
