@@ -470,7 +470,7 @@ MonoBehaviour:
   avatarImage: {fileID: 6314858913166443644}
   nameText: {fileID: 9104475812256443055}
   messageText: {fileID: 3422792502691385008}
-  adjustNameSize: {fileID: 7364713760056407864}
+  adjuster: {fileID: 7364713760056407864}
 --- !u!1 &8007261878233364918
 GameObject:
   m_ObjectHideFlags: 0
