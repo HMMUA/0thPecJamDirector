@@ -50,7 +50,7 @@ public class TransitionController : MonoBehaviour
     {
         transitionAnimator.Play("idle", 0, 0); // 重置动画状态
         transitionAnimator.SetTrigger("StartIntervalTransition");
-        ResetInformation(videoData);
+        //ResetInformation(videoData);
     }
 
     public void ResetInformation(VideoData videoData)
@@ -262,6 +262,11 @@ public class TransitionController : MonoBehaviour
         canvasinfoController.ShowInfo();
     }
 
+    public void ShowIntervalInfo()
+    {
+        canvasinfoController.ShowInterval();
+    }
+
 
     public void StartInterval()
     {
@@ -272,6 +277,8 @@ public class TransitionController : MonoBehaviour
     {
         directorSystem.ShowVideo();
     }
+
+
 
 
 

@@ -50,6 +50,15 @@ public class CanvasinfoController : MonoBehaviour
         AniShowInfo();
     }
 
+    public void ShowInterval()
+    {
+        // stageText.text = "INTERVAL";
+        // numberText.text = "";
+        // stageText.DOFade(1, 1f);
+        // numberText.DOFade(1, 1f);
+        AniShowInterval();
+    }
+
     public void AniHideInfo()
     {
         Debug.Log("HideInfo");
@@ -66,23 +75,44 @@ public class CanvasinfoController : MonoBehaviour
 
 
         
-        if(directorSystem.playlist[directorSystem.currentIndex+1].isMainStage)
+        if(directorSystem.playlist[directorSystem.currentIndex+1].isMainStage == 1)
         {
             //内场
+            stageSprite.gameObject.SetActive(true);
             stageSprite.sprite = neichang;
         }
         else if(directorSystem.playlist[directorSystem.currentIndex+1].isDarkHorse)
         {
             //黑马
+            stageSprite.gameObject.SetActive(true);
             stageSprite.sprite = heima;
+        }
+        else if(directorSystem.playlist[directorSystem.currentIndex+1].isMainStage == 0)
+        {
+            //外场
+            stageSprite.gameObject.SetActive(true);
+            stageSprite.sprite = waichang;
         }
         else
         {
-            //外场
-            stageSprite.sprite = waichang;
+            //无场
+            stageSprite.gameObject.SetActive(true);
+            stageSprite.gameObject.SetActive(false);
         }
 
         animator.Play("ShowNPut", 0, 0);
+    }
+
+    public void AniShowInterval()
+    {
+        stageSprite.gameObject.SetActive(false);
+        Debug.Log("ShowInterval");
+        stageText.text = "INTERVAL";
+        numberText.text = "";
+        stageTextShadow.text = "INTERVAL";
+        numberTextShadow.text = "";
+        stageSprite.sprite = null;
+        animator.Play("ShowNormal", 0, 0);
     }
 
 }

@@ -22,7 +22,7 @@ public class VideoData
     public string id; // 唯一标识符，方便引用
 
     public string submissionTrack;//场（字母部分）
-    public bool isMainStage; // 是否主舞台（1是0否）
+    public int isMainStage; // 是否内场（1是0否，2啥都不是）
     public string number;//编号（数字部分）
 
     public string artist;//曲师
@@ -98,6 +98,9 @@ public class DirectorSystem : MonoBehaviour
     private bool hasTriggeredPreEnd = false;
     private bool isPlaying = false;
 
+    // 标记：是否启用“视频即将结束”检查（循环视频默认禁用）
+    private bool enablePreEndCheck = true;
+
     void Awake()
     {
         // 自动获取 VideoPlayer 组件
@@ -110,8 +113,8 @@ public class DirectorSystem : MonoBehaviour
 
     void Update()
     {
-        // 核心逻辑：检查是否还差3秒结束
-        if (videoPlayer.isPlaying && !hasTriggeredPreEnd && videoPlayer.length > 0)
+        // 核心逻辑：检查是否还差3秒结束（仅在启用检查时）
+        if (enablePreEndCheck && videoPlayer.isPlaying && !hasTriggeredPreEnd && videoPlayer.length > 0)
         {
             // 计算剩余时间 (VideoPlayer 的时间单位是 double)
             double timeRemaining = videoPlayer.length - videoPlayer.time;
@@ -171,7 +174,7 @@ public class DirectorSystem : MonoBehaviour
             if (columnIndex.ContainsKey("submissionTrack"))
                 data.submissionTrack = fields[columnIndex["submissionTrack"]].Trim();
             if (columnIndex.ContainsKey("isMainStage"))
-                data.isMainStage = fields[columnIndex["isMainStage"]].Trim() == "1";
+                data.isMainStage = fields[columnIndex["isMainStage"]].Trim() == "1" ? 1 : (fields[columnIndex["isMainStage"]].Trim() == "2" ? 2 : 0);
             if (columnIndex.ContainsKey("number"))
                 data.number = fields[columnIndex["number"]].Trim();
             if (columnIndex.ContainsKey("isDarkHorse"))
@@ -185,7 +188,7 @@ public class DirectorSystem : MonoBehaviour
             if (columnIndex.ContainsKey("designer"))
                 data.designer = fields[columnIndex["designer"]].Trim();
             if (columnIndex.ContainsKey("isLoop"))
-                data.isLoop = fields[columnIndex["isLoop"]].Trim() == "0";
+                data.isLoop = fields[columnIndex["isLoop"]].Trim() == "1";
             if (columnIndex.ContainsKey("videoInternetUrl"))
                 data.videoInternetUrl = fields[columnIndex["videoInternetUrl"]].Trim();
             if (columnIndex.ContainsKey("imageInternetUrl"))
@@ -297,6 +300,12 @@ public class DirectorSystem : MonoBehaviour
         {
             foreach (VideoData data in playlist)
             {
+                if (data.isInterval)
+                {
+                    Debug.Log($"跳过过渡视频 {data.id} 的网络链接，保持原有设置。");
+                    continue;
+                }
+
                 if (!string.IsNullOrEmpty(data.videoInternetUrl))
                 {
                     data.videoUrl = data.videoInternetUrl;
@@ -380,7 +389,15 @@ public class DirectorSystem : MonoBehaviour
         {
             if (string.IsNullOrEmpty(data.videoInternetUrl))
             {
-                Debug.LogWarning($"视频 {data.id} 没有网络 URL，跳过预加载。");
+                if(data.isInterval)
+                {
+                    Debug.Log($"跳过过渡视频 {data.id} 的网络预加载，保持原有设置。");
+                }
+                else
+                {
+                    Debug.LogWarning($"视频 {data.id} 没有 videoInternetUrl，跳过网络预加载。");
+                }
+                //Debug.LogWarning($"视频 {data.id} 丢失网络 URL，跳过预加载。");
                 continue;
             }
 
@@ -722,33 +739,45 @@ public class DirectorSystem : MonoBehaviour
     {
         VideoData currentData = playlist[index];
 
-        // 如果是过渡视频，不播放视频，而是触发特殊转场和事件
+        // 如果是过渡视频，使用绝对路径加载本地视频文件
         if (currentData.isInterval)
         {
-            //TriggerInterval(currentData);
-            return;
-        }
-
-        // 判断是使用本地 Clip、绝对路径 URL、或互联网 URL
-        if (currentData.clip != null)
-        {
-            videoPlayer.source = VideoSource.VideoClip;
-            videoPlayer.clip = currentData.clip;
-        }
-        else if (isUsingInternetVideo && !string.IsNullOrEmpty(currentData.videoInternetUrl))
-        {
-            videoPlayer.source = VideoSource.Url;
-            videoPlayer.url = currentData.videoInternetUrl;
-        }
-        else if (!string.IsNullOrEmpty(currentData.videoUrl))
-        {
-            videoPlayer.source = VideoSource.Url;
-            videoPlayer.url = currentData.videoUrl;
+            string fileName = currentData.id + ".mp4";
+            string absolutePath = Path.Combine(videoResourcePath, fileName);
+            if (File.Exists(absolutePath))
+            {
+                videoPlayer.source = VideoSource.Url;
+                videoPlayer.url = absolutePath;
+            }
+            else
+            {
+                Debug.LogError($"过渡视频文件不存在：{absolutePath}");
+                return;
+            }
         }
         else
         {
-            Debug.LogError($"视频 '{currentData.id}' 没有关联的 VideoClip 或 URL，无法播放！");
-            return;
+            // 判断是使用本地 Clip、绝对路径 URL、或互联网 URL
+            if (currentData.clip != null)
+            {
+                videoPlayer.source = VideoSource.VideoClip;
+                videoPlayer.clip = currentData.clip;
+            }
+            else if (isUsingInternetVideo && !string.IsNullOrEmpty(currentData.videoInternetUrl))
+            {
+                videoPlayer.source = VideoSource.Url;
+                videoPlayer.url = currentData.videoInternetUrl;
+            }
+            else if (!string.IsNullOrEmpty(currentData.videoUrl))
+            {
+                videoPlayer.source = VideoSource.Url;
+                videoPlayer.url = currentData.videoUrl;
+            }
+            else
+            {
+                Debug.LogError($"视频 '{currentData.id}' 没有关联的 VideoClip 或 URL，无法播放！");
+                return;
+            }
         }
 
         // 加载封面 Sprite（如果有 URL 且未加载）
@@ -764,6 +793,21 @@ public class DirectorSystem : MonoBehaviour
         videoPlayer.Play();
         isPlaying = true;
         Debug.Log($"正在播放第 {index + 1} 个视频：{currentData.id}");
+
+
+        if (currentData.isLoop)
+        {
+            videoPlayer.isLooping = true;
+            Debug.Log($"视频 {currentData.id} 设置为循环播放。");
+        }
+        else
+        {
+            videoPlayer.isLooping = false;
+        }
+
+        // 设置是否启用“视频即将结束”检查（循环视频默认禁用）
+        enablePreEndCheck = !currentData.isLoop;
+        
 
     }
 
@@ -793,5 +837,15 @@ public class DirectorSystem : MonoBehaviour
     public void ShowVideo()
     {
         videoPlayer.targetCameraAlpha = 1f; // 恢复视频画面可见
+    }
+
+    /// <summary>
+    /// 启用“视频即将结束”检查（用于循环视频）
+    /// </summary>
+    public void EnablePreEndCheck()
+    {
+        enablePreEndCheck = true;
+        videoPlayer.isLooping = false; // 取消循环播放，启用结束检查
+        Debug.Log("已启用视频即将结束检查。");
     }
 }
