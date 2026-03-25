@@ -1,0 +1,463 @@
+╔════════════════════════════════════════════════════╗
+║      用户配置指南 - PecJamDirector                  ║
+║      安装后立即开始使用                             ║
+╚════════════════════════════════════════════════════╝
+
+【快速开始】
+
+1️⃣ 找到配置文件
+   └─ PecJamDirector_Data/Resources/SettingsConfig.json
+
+2️⃣ 用文本编辑器打开
+   建议工具：
+   • Windows: 记事本 (Notepad)、VSCode、Sublime Text
+   • Mac: TextEdit、Sublime Text、VSCode
+   • Linux: nano、vi、gedit、VSCode
+
+3️⃣ 填写配置信息
+   └─ 按照下方说明修改每一项
+
+4️⃣ 保存并启动游戏
+   └─ 配置自动应用
+
+
+【配置项详解】
+
+════════════════════════════════════════════════════
+
+【1】API 配置 - LiveProgressReporter
+
+此部分用于连接后端服务，跟踪游戏进度。
+
+【参数说明】
+
+  apiUrl
+  ──────────────────────────────────
+  • 含义：后端API服务的完整地址
+  • 示例：
+    "https://api.example.com/api/program/now-playing"
+    "https://service.domain.com/track/event"
+  • 说明：向此地址发送游戏事件
+  • 如果没有后端服务，保持默认或留空
+
+  timeoutSeconds
+  ──────────────────────────────────
+  • 含义：API请求超时时间（秒）
+  • 示例：15
+  • 范围：推荐 5-30 秒
+  • 说明：网络较慢的用户可增大此值
+
+  authorizationHeader
+  ──────────────────────────────────
+  • 含义：你的 API 认证令牌
+  • 示例：
+    "Bearer abc1234567890xyz"
+    "Token u4H3JVukwthOOZbDMD9jlkmbi2o1q1v7M134cT"
+  • 说明：由服务方提供
+  • ⚠️ 注意：不要分享此信息！
+
+  cookieHeader
+  ──────────────────────────────────
+  • 含义：会话cookie值
+  • 示例：
+    "session=abc123; Path=/; Domain=.example.com"
+    "_vercel_jwt=eyJ0..."
+  • 说明：某些服务使用 Cookie 维持会话
+  • 由服务方提供或从浏览器获取
+
+【配置示例】
+
+"LiveProgressReporter": {
+  "apiUrl": "https://api.example.com/track",
+  "timeoutSeconds": 15,
+  "authorizationHeader": "Bearer YOUR_TOKEN",
+  "cookieHeader": "session=YOUR_SESSION_ID"
+}
+
+════════════════════════════════════════════════════
+
+【2】视频配置 - DirectorSystem
+
+此部分配置游戏从何处加载视频文件。
+
+【参数说明】
+
+  videoResourcePath
+  ──────────────────────────────────
+  • 含义：视频文件所在的文件夹路径
+  
+  • Windows 示例（推荐）：
+    绝对路径: "E:\\Videos"
+            "D:\\MyGames\\Videos"
+            "C:\\Users\\YourName\\Videos"
+    相对路径: "./Videos"
+            "../resources/Videos"
+  
+  • Mac 示例：
+    绝对路径: "/Users/YourName/Videos"
+            "/Volumes/Data/Videos"
+    相对路径: "./Videos"
+  
+  • Linux 示例：
+    绝对路径: "/home/user/videos"
+            "/mnt/media/videos"
+    相对路径: "./Videos"
+
+  • 说明：
+    ① 绝对路径：完整的系统路径，不受游戏位置影响
+    ② 相对路径：相对于游戏执行文件所在文件夹
+    ③ 文件夹必须存在，否则游戏找不到视频
+
+【路径示意图】
+
+  方案 A - 绝对路径（推荐）：
+  ─────────────────────────────────
+  E:\Videos\                    ← 视频文件夹
+  ├─ video_001.mp4
+  ├─ video_002.mp4
+  └─ ...
+  
+  D:\Games\PecJamDirector\      ← 游戏位置
+  ├─ PecJamDirector.exe
+  └─ PecJamDirector_Data\
+  
+  配置：
+  "videoResourcePath": "E:\\Videos"
+  
+  ─────────────────────────────────
+
+  方案 B - 相对路径（便携）：
+  ─────────────────────────────────
+  D:\Gaming\PecJamDirector\
+  ├─ PecJamDirector.exe          ← 游戏
+  ├─ PecJamDirector_Data\
+  └─ Videos\                     ← 视频文件夹
+     ├─ video_001.mp4
+     └─ ...
+  
+  配置：
+  "videoResourcePath": "./Videos"
+  
+  ─────────────────────────────────
+
+【配置建议】
+
+✓ 建议：
+  • "videoResourcePath": "F:\\Videos"  （绝对路径，最稳定）
+
+✗ 避免：
+  • 使用网络路径："\\\\server\\videos"  （性能差）
+  • 非英文路径："D:\\中文\\视频"  （某些系统可能有问题）
+
+
+【配置示例】
+
+"DirectorSystem": {
+  "videoResourcePath": "E:\\Videos"
+}
+
+════════════════════════════════════════════════════
+
+【3】图片配置 - SpriteLoader
+
+此部分配置游戏从何处加载精灵（图片）文件。
+
+【参数说明】
+
+  spriteResourcePath
+  ──────────────────────────────────
+  • 含义：图片文件所在的文件夹路径
+  • 格式：与视频配置相同
+  • example：
+    "E:\\Sprites"         (Windows绝对路径)
+    "./Sprites"           (相对路径)
+    "/home/user/sprites"  (Linux绝对路径)
+
+  useAbsolutePath
+  ──────────────────────────────────
+  • 含义：是否使用绝对路径加载图片
+  • 值：true 或 false
+  
+  • true 含义：
+    ✓ 使用 spriteResourcePath 指定的路径
+    ✓ 推荐用于自定义图片
+    ✓ 例："E:\\Sprites\\sprite_001.png"
+  
+  • false 含义：
+    ✓ 从游戏内置资源加载
+    ✓ 推荐用于默认图片
+    ✓ 与视频路径无关
+
+【配置示例】
+
+【场景 1】使用外部图片（推荐）：
+"SpriteLoader": {
+  "spriteResourcePath": "E:\\Sprites",
+  "useAbsolutePath": true
+}
+
+【场景 2】使用游戏内置图片：
+"SpriteLoader": {
+  "spriteResourcePath": "Assets/Resources/Sprites",
+  "useAbsolutePath": false
+}
+
+════════════════════════════════════════════════════
+
+【完整配置文件示例】
+
+{
+  "LiveProgressReporter": {
+    "apiUrl": "https://api.example.com/api/program/now-playing",
+    "timeoutSeconds": 15,
+    "authorizationHeader": "Bearer YOUR_AUTH_TOKEN_HERE",
+    "cookieHeader": "_vercel_jwt=YOUR_COOKIE_HERE"
+  },
+  "DirectorSystem": {
+    "videoResourcePath": "E:\\Videos"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "E:\\Sprites",
+    "useAbsolutePath": true
+  }
+}
+
+
+【常见配置组合】
+
+【配置 1】完全离线模式（无API）
+────────────────────────────────
+适合：本地测试、单机使用
+配置：
+{
+  "LiveProgressReporter": {
+    "apiUrl": "",
+    "timeoutSeconds": 15,
+    "authorizationHeader": "",
+    "cookieHeader": ""
+  },
+  "DirectorSystem": {
+    "videoResourcePath": "E:\\Videos"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "E:\\Sprites",
+    "useAbsolutePath": true
+  }
+}
+
+【配置 2】完全联网模式（有API）
+────────────────────────────────
+适合：直播集成、实时跟踪
+配置：
+{
+  "LiveProgressReporter": {
+    "apiUrl": "https://live-api.domain.com/track",
+    "timeoutSeconds": 20,
+    "authorizationHeader": "Bearer actual_token_123",
+    "cookieHeader": "session=abc123xyz"
+  },
+  "DirectorSystem": {
+    "videoResourcePath": "E:\\Videos"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "E:\\Sprites",
+    "useAbsolutePath": true
+  }
+}
+
+【配置 3】便携式（所有文件相对位置）
+────────────────────────────────────
+适合：USB 便携、云存储同步
+配置：
+{
+  "LiveProgressReporter": {
+    "apiUrl": "",
+    "timeoutSeconds": 15,
+    "authorizationHeader": "",
+    "cookieHeader": ""
+  },
+  "DirectorSystem": {
+    "videoResourcePath": "./Resources/Videos"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "./Resources/Sprites",
+    "useAbsolutePath": true
+  }
+}
+
+
+【路径编辑技巧】
+
+【Windows 路径格式】
+
+✓ 正确の写法：
+  "E:\\Videos"        （双反斜杠）
+  "F:\\media\\videos" （双反斜杠）
+
+✗ 错误の写法：
+  "E:\Videos"         （单反斜杠 ✗）
+  "E:/Videos"         （斜杠，可能有问题）
+
+原因：JSON 中 \ 是转义符，需要写 \\
+
+
+【Mac/Linux 路径格式】
+
+✓ 正确の写法：
+  "/Users/Name/Videos"     （单斜杠）
+  "/home/user/media/videos" （单斜杠）
+  "./Videos"               （相对路径）
+
+✗ 错误の写法：
+  "\home\user\videos"      （反斜杠 ✗ 这是 Windows 格式）
+
+
+【路径检查清单】
+
+□ 文件夹路径确实存在吗？
+  → 打开文件管理器手动检查
+
+□ 文件夹中有视频/图片文件吗？
+  → 确保不是空文件夹
+
+□ 路径中没有特殊字符吗？
+  → 某些系统不支持特殊符号
+
+□ 路径拼写正确吗？
+  → 注意大小写（Mac/Linux 敏感）
+
+□ Windows 用户使用了双反斜杠吗？
+  → 必须是 \\ 而不是 \
+
+
+【编辑配置文件步骤】
+
+【步骤 1】打开配置文件
+──────────────────────
+1. 打开文件管理器
+2. 导航到游戏安装位置
+3. 找到文件夹：PecJamDirector_Data/Resources/
+4. 找到文件：SettingsConfig.json
+5. 右键 → 打开方式 → 记事本（或其他文本编辑器）
+
+【步骤 2】找到要修改的行
+──────────────────────
+例如修改视频路径：
+搜索：videoResourcePath
+
+【步骤 3】修改值
+──────────────────────
+原：
+  "videoResourcePath": "E:\\0th\\Videos"
+
+新：
+  "videoResourcePath": "E:\\MyVideos"
+
+【步骤 4】保存文件
+──────────────────────
+按 Ctrl+S（或菜单 → 保存）
+确保文件保存成功
+
+【步骤 5】重启游戏
+──────────────────────
+关闭并重新启动游戏
+新配置应该已生效
+
+
+【常见问题】
+
+【Q】游戏启动后无法找到视频/图片？
+【A】
+  1. 检查 videoResourcePath 和 spriteResourcePath 是否正确
+  2. 确保文件夹真的存在
+  3. 检查文件夹中是否有文件
+  4. 重新启动游戏（不要只加载新场景）
+  5. 查看游戏输出日志（如果有）
+
+【Q】配置文件无法保存？
+【A】
+  • 以管理员身份运行编辑器
+  • 检查文件是否被游戏占用
+  • 尝试另一个编辑器
+
+【Q】JSON 格式错误？
+【A】
+  • Windows 路径必须用双反斜杠：\\ 
+  • 字符串必须用双引号：""
+  • 最后一项后面不能有逗号
+  • 使用 json validator 检查格式
+
+【Q】相对路径和绝对路径有什么区别？
+【A】
+  相对路径：相对于 .exe 所在位置
+    "./Videos" 表示游戏文件夹下的 Videos 子文件夹
+    
+  绝对路径：完整系统路径
+    "E:\\Videos" 始终指向 E 盘的 Videos 文件夹
+    与游戏位置无关
+
+【Q】如何找到我的文件路径？
+【A】
+  Windows:
+  1. 打开包含文件的文件夹
+  2. 点击地址栏
+  3. 复制路径
+  4. 在配置中粘贴（记得双反斜杠）
+  
+  Mac/Linux:
+  1. 打开终端
+  2. cd 到文件夹
+  3. pwd（Print Working Directory）
+  4. 复制输出路径
+
+
+【导出和分享配置】
+
+如果希望分享你的配置给其他用户：
+
+【步骤】
+1. 复制 SettingsConfig.json
+2. 重命名为 SettingsConfig_MySetup.json
+3. 分享给其他用户
+4. 用户只需将其复制到 .../Resources/
+5. 重命名回 SettingsConfig.json（覆盖旧配置）
+6. 重启游戏
+
+
+【默认配置（如果配置丢失）】
+
+如果 SettingsConfig.json 被删除或损坏，复制此内容重建：
+
+{
+  "LiveProgressReporter": {
+    "apiUrl": "",
+    "timeoutSeconds": 15,
+    "authorizationHeader": "",
+    "cookieHeader": ""
+  },
+  "DirectorSystem": {
+    "videoResourcePath": "./Videos"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "./Sprites",
+    "useAbsolutePath": true
+  }
+}
+
+然后保存为 SettingsConfig.json 即可。
+
+
+【联系支持】
+
+如果遇到问题无法解决，请提供：
+• 游戏版本号
+• 操作系统（Windows/Mac/Linux）
+• SettingsConfig.json 内容（隐藏敏感信息）
+• 游戏的错误日志或输出日志
+• 详细的问题描述
+• 已经尝试过哪些解决方案
+
+
+════════════════════════════════════════════════════
+版本：1.0
+更新：2024

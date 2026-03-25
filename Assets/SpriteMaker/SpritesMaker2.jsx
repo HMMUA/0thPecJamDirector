@@ -32,35 +32,53 @@ function main() {
         return;
     }
 
-    // 解析表头，获取列索引
-    var headers = lines[0].split(",");
+    // 解析表头，获取列索引（使用正确的 CSV 解析）
+    var headers = parseCSVLine(lines[0]);
     var colMap = {};
     for (var i = 0; i < headers.length; i++) {
-        // 去除可能的空格或引号
-        var headerName = headers[i].replace(/^\s+|\s+$/g, '').replace(/^"|"$/g, '');
-        colMap[headerName] = i;
+        colMap[headers[i]] = i;
     }
 
     // 检查必要的列是否存在
-    if (colMap["id"] === undefined || colMap["title"] === undefined || 
-        colMap["artist"] === undefined || colMap["designer"] === undefined) {
-        alert("CSV表头必须包含 id, title, artist, designer 这四列！\n当前表头为: " + headers.join(", "));
+    if (colMap["ID"] === undefined || colMap["Title"] === undefined || 
+        colMap["Composers"] === undefined || colMap["Designers"] === undefined) {
+        alert("CSV表头必须包含 ID, Title, Composers, Designers 这四列！\n当前表头为: " + headers.join(", "));
         return;
     }
 
     // 记录初始历史状态，以便每次循环后恢复（防止连续缩放导致字体大小失真，也会恢复点文本到原有的段落文本状态）
     var savedState = doc.activeHistoryState;
 
+    // 创建进度对话框
+    var progressDialog = createProgressDialog(lines.length - 1);
+    
     // 遍历数据行
     for (var i = 1; i < lines.length; i++) {
         var line = lines[i];
         if (line.replace(/^\s+|\s+$/g, '') === "") continue; // 跳过空行
 
-        var data = line.split(",");
-        var idVal = data[colMap["id"]];
-        var titleVal = data[colMap["title"]];
-        var artistVal = data[colMap["artist"]];
-        var designerVal = data[colMap["designer"]];
+        // 更新进度
+        if (progressDialog) {
+            progressDialog.bar.value = i;
+            progressDialog.statusText.text = "处理中... (" + i + "/" + (lines.length - 1) + ")";
+            
+            // 检查用户是否点击了取消
+            if (progressDialog.cancelPressed) {
+                alert("操作已被用户取消。");
+                progressDialog.close();
+                return;
+            }
+
+            // 处理事件，允许UI更新
+            app.refresh();
+        }
+
+        // 使用正确的 CSV 解析方法（支持包含逗号的字段）
+        var data = parseCSVLine(line);
+        var idVal = data[colMap["ID"]];
+        var titleVal = data[colMap["Title"]];
+        var artistVal = data[colMap["Composers"]];
+        var designerVal = data[colMap["Designers"]];
 
         // 定义图层名和对应的内容映射
         var layerMappings =[
@@ -78,12 +96,17 @@ function main() {
             var targetLayer = findLayerByName(doc, mapping.name);
 
             if (targetLayer !== null && targetLayer.kind === LayerKind.TEXT) {
-                // 1. 替换文字
-                var newContent = mapping.content.replace(/^"|"$/g, '');
+                // 1. 替换文字（进行最后的数据清理）
+                var newContent = mapping.content;
+                if (newContent === null || newContent === undefined) {
+                    newContent = "";
+                } else {
+                    newContent = newContent.toString().replace(/^\s+|\s+$/g, '');
+                }
                 targetLayer.textItem.contents = newContent;
 
                 // 若文字不为空，则进行自适应缩放
-                if (newContent.replace(/^\s+|\s+$/g, '') !== "") {
+                if (newContent !== "") {
                     
                     // 【修复核心1】：如果是段落文本（文本框），bounds不会随字数减少而缩小。将其临时强转为点文本。
                     if (targetLayer.textItem.kind === TextType.PARAGRAPHTEXT) {
@@ -95,12 +118,12 @@ function main() {
                     var bounds = tempLayer.bounds;
                     tempLayer.remove();
 
-                    // 2. 约束尺寸在最大宽度 1700，最大高度 300 以内 (等比缩放)
+                    // 2. 约束尺寸在最大宽度 2000 300 以内 (等比缩放)
                     var w = bounds[2].value - bounds[0].value;
                     var h = bounds[3].value - bounds[1].value;
 
                     if (w > 0 && h > 0) {
-                        var MAX_W = 1700; 
+                        var MAX_W = 2000; 
                         var MAX_H = 300;
                         var scaleW = MAX_W / w;
                         var scaleH = MAX_H / h;
@@ -128,10 +151,89 @@ function main() {
         doc.activeHistoryState = savedState;
     }
 
+    // 关闭进度对话框
+    if (progressDialog) {
+        progressDialog.close();
+    }
+
     alert("处理完成！所有图片已导出至: " + outFolder.fsName);
 }
 
-// 递归查找图层（支持在图层组中查找）
+// 创建进度对话框
+function createProgressDialog(totalCount) {
+    var dlg = new Window("palette", "处理进度");
+
+    // 标题文本
+    dlg.add("statictext", undefined, "正在处理 Sprite...", {multiline: true});
+
+    // 进度条
+    var barGroup = dlg.add("group", undefined);
+    barGroup.orientation = "column";
+    barGroup.add("statictext", undefined, "进度：");
+    var bar = barGroup.add("progressbar", undefined, 0, totalCount);
+    bar.preferredSize = [400, 20];
+
+    // 状态文本
+    var statusText = dlg.add("statictext", undefined, "处理中... (0/" + totalCount + ")");
+    statusText.characters = 40;
+
+    // 按钮组
+    var btnGroup = dlg.add("group", undefined);
+    btnGroup.orientation = "row";
+    btnGroup.add("button", undefined, "取消", { name: "cancel" });
+
+    // 标志用来记录是否取消
+    dlg.cancelPressed = false;
+
+    btnGroup.children[0].onClick = function() {
+        dlg.cancelPressed = true;
+        dlg.close(1);
+    };
+
+    // 保存引用便于访问
+    dlg.bar = bar;
+    dlg.statusText = statusText;
+
+    dlg.show();
+    return dlg;
+}
+
+// CSV 行解析函数（支持包含逗号的字段和转义双引号）
+function parseCSVLine(line) {
+    var fields = [];
+    var currentField = "";
+    var inQuotes = false;
+
+    for (var i = 0; i < line.length; i++) {
+        var c = line[i];
+        var nextChar = (i + 1 < line.length) ? line[i + 1] : "";
+
+        if (c === '"') {
+            if (inQuotes && nextChar === '"') {
+                // 处理转义的双引号（""）
+                currentField += '"';
+                i++; // 跳过下一个引号
+            } else {
+                // 切换引号状态
+                inQuotes = !inQuotes;
+            }
+        } else if (c === "," && !inQuotes) {
+            // 逗号分隔符（仅在引号外）
+            fields.push(currentField.replace(/^\s+|\s+$/g, '').replace(/^"|"$/g, ''));
+            currentField = "";
+        } else {
+            currentField += c;
+        }
+    }
+
+    // 添加最后一个字段
+    if (currentField.length > 0 || fields.length > 0) {
+        fields.push(currentField.replace(/^\s+|\s+$/g, '').replace(/^"|"$/g, ''));
+    }
+
+    return fields;
+}
+
 function findLayerByName(parent, name) {
     for (var i = 0; i < parent.layers.length; i++) {
         var layer = parent.layers[i];

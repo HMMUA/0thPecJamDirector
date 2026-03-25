@@ -1,0 +1,405 @@
+╔════════════════════════════════════════════════════╗
+║      快速参考 - 打包和配置要点                      ║
+╚════════════════════════════════════════════════════╝
+
+【打包路径总结】
+
+打包前配置文件位置：
+  Assets/Resources/SettingsConfig.json
+
+打包后配置文件位置：
+┌─────────────────────────────────────────┐
+│ Windows:                                 │
+│ PecJamDirector_Data/Resources/           │
+│   SettingsConfig.json                    │
+├─────────────────────────────────────────┤
+│ Mac:                                     │
+│ PecJamDirector.app/Contents/Resources/   │
+│   Data/Resources/SettingsConfig.json     │
+├─────────────────────────────────────────┤
+│ Linux:                                   │
+│ PecJamDirector_Data/Resources/           │
+│   SettingsConfig.json                    │
+└─────────────────────────────────────────┘
+
+
+【SettingsConfig.json 核心配置】
+
+┌─ 1️⃣ API 配置 ──────────────────────────┐
+│ "apiUrl":               API 服务地址      │
+│ "timeoutSeconds":       超时时间          │
+│ "authorizationHeader":  认证 Token        │
+│ "cookieHeader":         会话 Cookie       │
+└─────────────────────────────────────────┘
+
+┌─ 2️⃣ 视频配置 ──────────────────────────┐
+│ "videoResourcePath":    视频文件夹路径    │
+│   Windows: "E:\\Videos"                   │
+│   Mac/Linux: "/Users/name/Videos"        │
+└─────────────────────────────────────────┘
+
+┌─ 3️⃣ 图片配置 ──────────────────────────┐
+│ "spriteResourcePath":   图片文件夹路径    │
+│ "useAbsolutePath":      true/false        │
+│   true  = 使用外部路径(推荐)              │
+│   false = 使用内置资源                    │
+└─────────────────────────────────────────┘
+
+
+【打包检查快速清单】
+
+【打包前 5 分钟】
+  ☐ SettingsConfig.json 有效
+  ☐ 主场景在 Build Settings 中
+  ☐ 没有编译错误
+  ☐ 选择正确的输出平台
+  ☐ 磁盘有足够空间
+
+【结果】✅ 开始打包
+
+
+【关键路径示例】
+
+【Windows 绝对路径】
+"videoResourcePath": "E:\\Videos"
+"spriteResourcePath": "D:\\GameAssets\\Sprites"
+
+【Windows 相对路径】
+"videoResourcePath": "./Videos"
+"spriteResourcePath": "./Sprites"
+
+【Mac 绝对路径】
+"videoResourcePath": "/Users/john/Videos"
+"spriteResourcePath": "/Volumes/Data/Sprites"
+
+【Linux 绝对路径】
+"videoResourcePath": "/home/user/videos"
+"spriteResourcePath": "/mnt/media/sprites"
+
+⚠️ Windows 路径必须用双反斜杠：\\ 而不是 \
+
+
+【打包流程】
+
+1) File > Build Settings
+   ↓
+2) 选择平台（Windows/Mac/Linux）
+   ↓
+3) 添加场景到 Scenes In Build
+   ↓
+4) Build → 选择输出位置
+   ↓
+5) 等待编译（5-30 分钟）
+   ↓
+6) 获得 .exe / .app / 可执行文件
+   ↓
+7) 测试游戏
+   ↓
+8) 准备分发
+
+
+【配置文件编辑】
+
+【打开】
+  → PecJamDirector_Data/Resources/
+  → 右键 SettingsConfig.json
+  → 打开方式 → 记事本/VSCode
+
+【修改】
+  原: "videoResourcePath": "E:\\0th\\Videos"
+  新: "videoResourcePath": "F:\\MyVideos"
+
+【保存】
+  → Ctrl+S
+
+【重启游戏】
+  → 新配置应用
+
+
+【目录结构参考】
+
+【打包后 Windows】
+```
+PecJamDirector\
+├─ PecJamDirector.exe
+├─ UnityPlayer.dll
+├─ PecJamDirector_Data\
+│  ├─ Resources\
+│  │  └─ SettingsConfig.json ← 用户编辑
+│  ├─ Scenes\
+│  ├─ Managed\
+│  │  └─ Assembly-CSharp.dll
+│  └─ Mono\
+└─ Plugins\
+```
+
+【打包后 Mac】
+```
+PecJamDirector.app\
+├─ Contents\
+│  ├─ MacOS\
+│  │  └─ PecJamDirector
+│  └─ Resources\
+│     └─ Data\
+│        ├─ Resources\
+│        │  └─ SettingsConfig.json ← 用户编辑
+│        ├─ Scenes\
+│        └─ Managed\
+```
+
+
+【常见问题速查表】
+
+【问题】找不到视频/图片
+【答案】
+  1. 检查路径拼写
+  2. 确认文件夹存在
+  3. 使用绝对路径测试
+  4. 重启游戏
+
+【问题】配置无法应用
+【答案】
+  1. JSON 格式检查
+  2. Windows 路径用 \\
+  3. 重启游戏（很关键！）
+
+【问题】打包失败
+【答案】
+  1. 检查编译错误
+  2. 清理 Library 文件夹
+  3. 重新打开项目
+  4. 重试打包
+
+【问题】找不到 SettingsConfig.json
+【答案】
+  1. 检查位置是否正确
+  2. 文件可能被误删
+  3. 复制备份文件恢复
+
+
+【最小配置（离线模式）】
+
+```json
+{
+  "LiveProgressReporter": {
+    "apiUrl": "",
+    "timeoutSeconds": 15,
+    "authorizationHeader": "",
+    "cookieHeader": ""
+  },
+  "DirectorSystem": {
+    "videoResourcePath": "./Videos"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "./Sprites",
+    "useAbsolutePath": true
+  }
+}
+```
+
+
+【完整配置示例】
+
+```json
+{
+  "LiveProgressReporter": {
+    "apiUrl": "https://api.example.com/track",
+    "timeoutSeconds": 20,
+    "authorizationHeader": "Bearer YOUR_TOKEN",
+    "cookieHeader": "session=YOUR_SESSION"
+  },
+  "DirectorSystem": {
+    "videoResourcePath": "E:\\Videos"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "E:\\Sprites",
+    "useAbsolutePath": true
+  }
+}
+```
+
+
+【Unity Build Settings 快速参考】
+
+【位置】
+  Edit > Project Settings > Player
+  + File > Build Settings
+
+【必需设置】
+  ✓ Product Name: PecJamDirector
+  ✓ Version: 1.0.0
+  ✓ Target Platform: Windows/Mac/Linux
+  ✓ Scenes In Build: [MainScene]
+
+【推荐设置】
+  ✓ Default Screen Resolution: 1920x1080
+  ✓ Fullscreen: Window 或 Fullscreen
+  ✓ Run In Background: ☑
+  ✓ Scripting Backend: IL2CPP
+  ✓ Compression: LZ4
+
+
+【性能优化】
+
+【构建大小】
+  原始: 500MB → 优化后: 250MB
+  技巧:
+    • 压缩纹理
+    • 去除未使用资源
+    • Shader stripping
+    • 移除不需要的平台
+
+【启动时间】
+  目标: 2-5 秒
+  技巧:
+    • 异步加载场景
+    • 预加载关键资源
+    • 使用 IL2CPP
+    • 优化 Shader
+
+【运行性能】
+  目标: 60+ FPS
+  技巧:
+    • 限制同时加载数
+    • 使用对象池
+    • 优化 Draw Calls
+    • LOD 系统
+
+
+【文档位置】
+
+项目文件夹中的文档：
+  • BUILD_PACKAGING_GUIDE.txt    ← 完整打包指南
+  • USER_SETUP_GUIDE.txt          ← 用户配置指南
+  • PRE_BUILD_CHECKLIST.txt       ← 打包前检查
+  • SETTINGS_GUIDE.txt            ← 设置系统说明
+  • SPRITE_LOADER_README.txt      ← 图片加载说明
+
+配置文件示例：
+  • SettingsConfig.json           ← 主配置文件
+
+
+【脚本核心函数】
+
+SettingsManager.cs:
+  LoadSettings()       - 从 Resources 加载
+  ApplySettings()      - 应用配置到系统
+  GetConfig()          - 获取配置对象
+
+SpriteLoader.cs:
+  LoadSprite(name)     - 单个加载
+  LoadSpriteFromAbsolutePath()  - 绝对路径
+  LoadSpriteBatch(names)        - 批量加载
+  ClearCache()         - 清空缓存
+
+DirectorSystem.cs:
+  配置: videoResourcePath
+
+TransitionController.cs:
+  ResetInformation()   - 重置并加载精灵
+  ConfigureSpriteLoader() - 手动配置
+
+
+【常用 Windows 路径】
+
+已安装游戏位置示例：
+  C:\Program Files\PecJamDirector\
+  D:\Games\PecJamDirector\
+  E:\Development\Builds\
+
+资源文件夹示例：
+  C:\Users\Name\Videos\
+  D:\MediaAssets\Sprites\
+  E:\Project\Resources\
+
+
+【Mac/Linux 常用路径】
+
+用户路径：
+  /Users/username/Videos/
+  /home/username/sprites/
+  ~/Videos/
+
+系统路径：
+  /Volumes/Drive/Videos/
+  /mnt/storage/sprites/
+  /opt/games/resources/
+
+
+【版本管理】
+
+Unity 版本：推荐 2021.3 LTS 或更新
+.NET 版本：.NET Standard 2.1
+Scripting：IL2CPP（推荐）
+
+构建对象：
+  Windows 10/11 x64
+  Mac OS 10.13+
+  Linux Ubuntu 18.04+
+
+
+【故障排查树】
+
+游戏无法启动？
+  ├─ 检查 Console 错误
+  ├─ 检查 SettingsConfig.json 存在
+  ├─ 检查 GameStartupInitializer 配置
+  └─ 重新打包
+
+找不到文件？
+  ├─ 检查路径拼写
+  ├─ 使用绝对路径测试
+  ├─ 检查文件权限
+  └─ 检查文件确实存在
+
+配置无法应用？
+  ├─ 验证 JSON 格式
+  ├─ 检查路径格式 (Windows \\)
+  ├─ 重启游戏
+  └─ 检查 Console 日志
+
+性能不达预期？
+  ├─ 检查 FPS
+  ├─ 减少同时加载文件数
+  ├─ 优化资源大小
+  └─ 升级硬件配置
+
+
+【优先事项】
+
+【发布前必做】
+  1. ✓ 打包前完整测试
+  2. ✓ 验证 SettingsConfig.json
+  3. ✓ 测试所有路径配置
+  4. ✓ 准备用户文档
+  5. ✓ 在目标平台测试
+
+【分发时包含】
+  • 可执行文件
+  • 数据文件夹
+  • 配置文件模板
+  • 用户指南
+  • 更新日志
+
+
+【支持联系】
+
+如需帮助，请准备：
+  1. 游戏版本号
+  2. 操作系统信息
+  3. SettingsConfig.json 内容（隐藏敏感信息）
+  4. 错误信息完整文本
+  5. 尝试过的解决方案
+
+
+════════════════════════════════════════════════════
+
+📌 工作流程
+
+编辑代码 → 编译测试 → 配置检查 → 打包生成
+  ↓
+配置文件验证 → 启动测试 → 功能测试
+  ↓
+性能评估 → 文档完成 → 分发
+
+════════════════════════════════════════════════════

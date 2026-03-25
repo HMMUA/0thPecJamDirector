@@ -1,0 +1,215 @@
+================================
+打包后设置单使用说明
+================================
+
+【文件位置】
+1. 配置文件：SettingsConfig.json
+   - 打包前：Assets/Resources/SettingsConfig.json
+   - 打包后：(游戏目录)/PecJamDirector_Data/Resources/SettingsConfig.json
+   
+2. 管理脚本：SettingsManager.cs
+   - 位置：Assets/Scripts/SettingsManager.cs
+   - 自动创建单例，无需手动放置到场景中
+
+
+【快速开始】
+
+步骤 1：场景配置
+-----------
+在你的启动场景（如 MainScene）中放置一个空 GameObject，命名为 "SettingsManager"
+- 无需添加任何组件！SettingsManager.cs 会自动创建单例并加载配置
+
+或者，直接在 Awake 中调用：
+  ```csharp
+  SettingsManager.Instance.LoadSettings();
+  ```
+
+
+步骤 2：编辑配置文件（打包前）
+------------------------
+在 Assets/Resources/SettingsConfig.json 中编辑：
+
+{
+  "LiveProgressReporter": {
+    "apiUrl": "你的接口URL",
+    "timeoutSeconds": 15,
+    "authorizationHeader": "Bearer xxxxx",  // 鉴权Token
+    "cookieHeader": "会话Cookie"             // 可选
+  },
+  "DirectorSystem": {
+    "videoResourcePath": "E:\\videos"        // 视频文件夹路径
+  }
+}
+
+
+步骤 3：打包游戏
+-----------
+正常打包即可，SettingsConfig.json 会被包含在Build中
+
+
+步骤 4：用户编辑（打包后）
+------------------
+用户在本地编辑 SettingsConfig.json：
+
+Windows:
+  游戏目录/PecJamDirector_Data/Resources/SettingsConfig.json
+
+macOS:
+  游戏.app/Contents/Resources/Data/Resources/SettingsConfig.json
+
+Linux:
+  游戏_Data/Resources/SettingsConfig.json
+
+用文本编辑器（记事本、VSCode等）打开并修改：
+- 接口URL
+- 认证Token
+- Cookie信息
+- 视频路径
+
+
+【数据说明】
+
+【LiveProgressReporter】
+┌─────────────────────────────┬─────────────────────────────────────┐
+│ 字段                         │ 说明                                 │
+├─────────────────────────────┼─────────────────────────────────────┤
+│ apiUrl                      │ 直播进度上报的API接口URL             │
+│ timeoutSeconds              │ HTTP请求超时时间（秒），默认15秒    │
+│ authorizationHeader         │ 接口鉴权Token（例如：Bearer xxxx） │
+│ cookieHeader                │ 会话Cookie（若需要则填写）          │
+└─────────────────────────────┴─────────────────────────────────────┘
+
+示例：
+  "authorizationHeader": "Bearer u4H3JVukwthOOZbDMD9jlkmbi2o1q1v7M134cT"
+  "cookieHeader": "sessionId=abc123; Path=/"
+
+
+【DirectorSystem】
+┌─────────────────────────────┬─────────────────────────────────────┐
+│ 字段                         │ 说明                                 │
+├─────────────────────────────┼─────────────────────────────────────┤
+│ videoResourcePath           │ 视频文件夹的绝对路径或相对路径       │
+└─────────────────────────────┴─────────────────────────────────────┘
+
+示例（Windows绝对路径）：
+  "videoResourcePath": "E:\\0th\\Videos"
+
+示例（相对路径）：
+  "videoResourcePath": "./Videos"
+
+
+【SpriteLoader】
+┌─────────────────────────────┬─────────────────────────────────────┐
+│ 字段                         │ 说明                                 │
+├─────────────────────────────┼─────────────────────────────────────┤
+│ spriteResourcePath          │ Sprite 文件夹的绝对路径              │
+│ useAbsolutePath             │ 是否使用绝对路径（true/false）       │
+└─────────────────────────────┴─────────────────────────────────────┘
+
+示例（Windows绝对路径）：
+  "spriteResourcePath": "E:\\0th\\Sprites",
+  "useAbsolutePath": true
+
+说明：
+- useAbsolutePath = true：从文件系统直接加载，支持 .png, .jpg, .jpeg, .bmp, .tga
+- useAbsolutePath = false：从 Resources 文件夹加载
+
+
+【流程说明】
+
+1. 游戏启动
+   ↓
+2. SettingsManager.Awake() 执行
+   ↓
+3. 从 SettingsConfig.json 加载配置
+   ↓
+4. 查找场景中的 DirectorSystem 和 LiveProgressReporter
+   ↓
+5. 将配置应用到这两个脚本
+   ↓
+6. 游戏开始运行（使用新的配置）
+
+
+【调试】
+
+如果配置未正确应用，检查以下内容：
+
+1. 检查 Console 日志：
+   - "✓ 设置已成功加载" → 配置加载成功
+   - "[DirectorSystem] 视频加载位置已更新" → DirectorSystem 更新成功
+   - "[LiveProgressReporter] 接口 URL 已更新" → LiveProgressReporter 更新成功
+   - 错误信息 → 配置文件格式或内容有问题
+
+2. 确保 SettingsConfig.json 文件：
+   - 有效的 JSON 格式（可使用 https://jsonlint.com/ 校验）
+   - 不包含多余的逗号或引号错误
+   - 编码为 UTF-8（不要使用带 BOM 的 UTF-8）
+
+3. 确保文件路径正确：
+   - 打包前：Assets/Resources/SettingsConfig.json
+   - 检查 Resources 文件夹名是否拼写正确
+
+4. 运行时调试：
+   在代码中调用：
+   ```csharp
+   SettingsData data = SettingsManager.Instance.GetSettings();
+   Debug.Log(JsonUtility.ToJson(data, true));
+   ```
+   来打印当前加载的配置
+
+
+【常见问题】
+
+Q: 配置文件找不到？
+A: 确保 SettingsConfig.json 在 Assets/Resources/ 文件夹下，文件名必须完全相同。
+
+Q: JSON 格式错误？
+A: 确保所有字符串都用双引号包围，不要使用中文引号。使用在线 JSON 校验工具。
+
+Q: 配置应用后游戏启动失败？
+A: 检查路径是否正确（特别是 videoResourcePath），Windows 路径使用 \\ 转义。
+
+Q: 想在游戏运行中重新加载配置？
+A: 调用 SettingsManager.Instance.ReloadSettings();
+
+
+【高级用法】
+
+在代码中动态获取配置：
+```csharp
+SettingsData settings = SettingsManager.Instance.GetSettings();
+string apiUrl = settings.LiveProgressReporter.apiUrl;
+string videoPath = settings.DirectorSystem.videoResourcePath;
+string spritePath = settings.SpriteLoader.spriteResourcePath;
+bool useAbsolutePath = settings.SpriteLoader.useAbsolutePath;
+```
+
+手动重新加载配置：
+```csharp
+SettingsManager.Instance.ReloadSettings();
+```
+
+使用 SpriteLoader 加载 Sprite：
+```csharp
+SpriteLoader spriteLoader = GetComponent<SpriteLoader>();
+
+// 方式 1：加载单个 Sprite（文件名不需要扩展名）
+Sprite sprite = spriteLoader.LoadSprite("character");  // 自动查找 character.png/.jpg/.etc
+
+// 方式 2：批量加载多个 Sprite
+Dictionary<string, Sprite> sprites = spriteLoader.LoadSpriteBatch(
+    new string[] { "icon1", "icon2", "background" }
+);
+
+// 方式 3：直接使用返回的 Sprite
+GetComponent<Image>().sprite = sprite;
+
+// 清空缓存（释放内存）
+spriteLoader.ClearCache();
+```
+
+支持的图片格式：
+- .png（推荐）
+- .jpg / .jpeg
+- .bmp
+- .tga

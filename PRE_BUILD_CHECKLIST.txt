@@ -1,0 +1,491 @@
+╔═══════════════════════════════════════════════════╗
+║      打包前最终检查清单                            ║
+║      Build Settings 配置指南                       ║
+╚═══════════════════════════════════════════════════╝
+
+🔧 【打包前准备 - 技术清单】
+
+【基础检查】
+─────────────────────────────────────
+
+☐ 版本控制
+  □ Git 已提交最新代码
+  □ 没有未追踪的重要文件
+  □ Tag 已标记发布版本
+  
+☐ 编译检查
+  □ 没有错误信息
+  □ 没有关键警告
+  □ 所有脚本都能正常编译
+
+☐ 资源检查
+  □ SettingsConfig.json 已准备
+  □ 所有必需的场景已导入
+  □ 音频/视频资源已确认
+  □ 贴图和 Shader 已优化
+
+
+【SettingsConfig.json 检查】
+─────────────────────────────────────
+
+☐ JSON 格式验证
+  □ 没有语法错误
+  □ 所有大括号匹配
+  □ 字符串使用双引号
+  □ 最后项没有逗号
+
+☐ 必需字段存在
+  □ LiveProgressReporter 配置
+  □ DirectorSystem 配置
+  □ SpriteLoader 配置
+
+☐ 路径配置有效
+  □ videoResourcePath 已设置
+  □ spriteResourcePath 已设置
+  □ useAbsolutePath 已设置
+
+☐ 敏感信息检查
+  □ API Token 不为空（或为占位符）
+  □ Cookie 不为空（或为占位符）
+  □ API URL 有效（或为空）
+  □ ⚠️ 注意：确保不要泄露真正的 Token！
+
+
+【场景和资源检查】
+─────────────────────────────────────
+
+☐ 启动场景
+  □ MainScene（或自定义启动场景）在 Build Settings 中
+  □ 场景能正常加载
+  □ 场景没有缺失依赖
+
+☐ 其他场景
+  □ 所有需要的场景已添加到 Build Settings
+  □ 场景顺序正确
+  □ 没有空场景或测试场景
+
+☐ 资源文件夹
+  □ Assets/Resources/ 包含必需的资源
+  □ Assets/Scenes/ 包含所有场景
+  □ Assets/Scripts/ 包含所有脚本
+  □ 没有巨大的未使用文件
+
+☐ 预制体和组件
+  □ GameStartupInitializer 预制体存在
+  □ SettingsManager 在场景或预制体中初始化
+  □ 所有必需的组件已配置
+
+
+【代码检查】
+─────────────────────────────────────
+
+☐ 核心脚本
+  □ SettingsManager.cs - 存在且可编译
+  □ DirectorSystem.cs - 存在且可编译
+  □ SpriteLoader.cs - 存在且可编译
+  □ TransitionController.cs - 存在且可编译
+  □ GameStartupInitializer.cs - 存在且可编译
+
+☐ 脚本错误
+  □ Console 没有错误信息
+  □ 没有循环引用
+  □ 没有空引用异常
+  □ Namespace 正确设置
+
+☐ 依赖关系
+  □ 所有 using 语句都有对应库
+  □ 外部插件已安装
+  □ 第三方库已正确导入
+
+
+【构建设置配置】
+─────────────────────────────────────
+
+【File > Build Settings】
+
+【Platform 选择】
+☐ 选择目标平台
+  □ PC, Mac & Linux Standalone
+  □ Windows
+  □ Mac OS X
+  □ Linux
+  （或其他平台）
+
+【Scenes In Build】
+☐ 场景列表
+  □ 启动场景在索引 0
+  □ 所有需要的场景都已添加
+  □ 没有测试或临时场景
+  □ 场景文件确实存在
+
+【Build Options】
+☐ 开发选项
+  □ ☐ Development Build（根据需要）
+  □ ☐ Autoconnect Profiler（如需调试）
+  □ ☐ Deep Profile（如需性能分析）
+  □ ☐ Scripts Only Build（通常不勾）
+
+【Compression】
+☐ 压缩设置
+  □ Default - 标准压缩
+  □ LZ4 - 快速加载
+  □ LZ4HC - 最高压缩
+
+☐ 建议
+  □ 使用 LZ4 获得最佳速度
+  □ 使用 Default 获得更小体积
+
+
+【质量和性能设置】
+─────────────────────────────────────
+
+【Edit > Project Settings > Quality】
+
+☐ 质量预设选择
+  □ Very Low - 低端机器（不推荐）
+  □ Low - 标准配置
+  □ Medium - 推荐
+  □ High - 高质量
+  □ Very High - 最高质量
+
+☐ 关键参数
+  □ V Sync Count - 根据刷新率设置（通常 1）
+  □ Target Frame Rate - 设置为 60 或 120
+  □ Anti Aliasing - 根据需要（可禁用）
+  □ Texture Quality - 根据显存调整
+
+【Edit > Project Settings > Graphics】
+
+☐ 图形设置
+  □ Instancing Variants - 根据平台选择
+  □ Shader stripping - 移除未使用的 Shader
+  □ Shader include variants - 优化构建大小
+
+
+【播放器设置】
+─────────────────────────────────────
+
+【Edit > Project Settings > Player】
+
+☐ 产品信息
+  □ Product Name - PecJamDirector（或自定义）
+  □ Version - 已设置正确版本号（如 1.0.0）
+  □ Bundle Version Code - 递增整数（如 1）
+
+☐ 分辨率和呈现
+  □ Default Screen Width - 1920 或适配
+  □ Default Screen Height - 1080 或适配
+  □ Fullscreen Mode - 窗口化或全屏
+  □ Run In Background - ☑ 如果需要后台运行
+
+☐ 图标
+  □ Default Icon - 已设置游戏图标
+  □ Splash Image - 已设置启动画面（可选）
+
+☐ 其他设置
+  □ Scripting Backend - IL2CPP（推荐）或 Mono
+  □ API Compatibility Level - .NET Standard 2.1（推荐）
+  □ Strip Engine Code - ☑ 可减小体积
+
+
+【第三方插件检查】
+─────────────────────────────────────
+
+☐ 已安装的插件
+  □ BilibiliDanmu 配置正确
+  □ OpenBLive 正确导入
+  □ AllIn1SpriteShader 已加载
+  □ UnityUIExtensions 可用
+  □ TextMesh Pro 已导入
+
+☐ 插件依赖
+  □ 所有插件的依赖都满足
+  □ 没有版本冲突
+  □ 编译时没有插件错误
+
+
+【编辑器扩展检查】
+─────────────────────────────────────
+
+☐ Editor 脚本
+  □ Assembly-CSharp-Editor 无错误
+  □ 编辑器工具不会影响打包
+  □ Editor 文件夹排除在打包外
+
+☐ Build 脚本
+  □ 是否需要 PreprocessBuild 或 PostprocessBuild？
+  □ 自定义 Build 脚本已测试
+
+
+【网络和 API 检查】
+─────────────────────────────────────
+
+☐ API 配置
+  □ apiUrl 设置正确（如需要）
+  □ Authorization header 有效
+  □ Cookie 访问权限正确
+  □ 超时时间合理（15-30 秒）
+
+☐ 连接测试
+  □ 能成功连接到 API 端点（如有）
+  □ 响应时间正常
+  □ 错误处理已实现
+
+
+【路径和文件系统检查】
+─────────────────────────────────────
+
+☐ 视频文件
+  □ E:\0th\Videos\ 存在
+  □ 文件夹中有视频文件
+  □ 视频格式支持（mp4, avi 等）
+  □ 文件名不含特殊字符
+
+☐ 图片资源
+  □ E:\0th\Sprites\ 存在
+  □ 文件夹中有图片文件
+  □ 图片格式支持（png, jpg 等）
+  □ 图片分辨率合理
+
+☐ 配置文件
+  □ Assets/Resources/SettingsConfig.json 存在
+  □ 路径指向正确位置
+  □ 文件可写入（打包后用户能编辑）
+
+
+【备份和版本控制】
+─────────────────────────────────────
+
+☐ 源代码备份
+  □ 所有源代码已提交到 Git
+  □ 标签已创建（如 v1.0.0）
+  □ 远程仓库已同步
+
+☐ 项目文件备份
+  □ ProjectSettings/ 已备份
+  □ Assets/ 重要文件已备份
+  □ 外部配置（SettingsConfig等）已备份
+
+☐ 版本信息
+  □ 版本号已更新
+  □ 变更日志已更新
+  □ 发布说明已准备
+
+
+【打包后效果测试清单】
+─────────────────────────────────────
+
+☐ 游戏启动
+  □ 可执行文件能正常启动
+  □ 没有立即崩溃
+  □ 启动没有错误信息
+
+☐ 配置加载
+  □ SettingsConfig.json 被正确读取
+  □ 所有配置值被正确应用
+  □ 没有配置相关的错误
+
+☐ 核心功能
+  □ 视频能加载并播放
+  □ 图片能加载并显示
+  □ UI 转场动画正常
+  □ API 连接正常（如需要）
+
+☐ 路径和文件
+  □ 外部视频文件能找到
+  □ 外部图片文件能找到
+  □ 相对路径或绝对路径工作正常
+  □ 可在另一台电脑上运行（权限检查）
+
+
+【文件大小和优化】
+─────────────────────────────────────
+
+☐ 构建大小检查
+  □ 整个构建包大小合理
+  □ 没有明显的冗余文件
+  □ 场景大小正常
+  □ 资源没有重复打包
+
+☐ 性能考虑
+  □ 启动时间在 2-5 秒以内
+  □ 内存使用合理
+  □ 帧率稳定（60 FPS 以上）
+  □ 没有明显的卡顿
+
+
+【文档准备】
+─────────────────────────────────────
+
+☐ 用户文档
+  □ USER_SETUP_GUIDE.txt 已准备
+  □ BUILD_PACKAGING_GUIDE.txt 已准备
+  □ README.md 包含基本说明
+  □ 配置说明清晰准确
+
+☐ 技术文档
+  □ SETTINGS_GUIDE.txt 保持最新
+  □ SPRITE_LOADER_README.txt 保持最新
+  □ API 文档已准备
+  □ 故障排查指南已准备
+
+☐ 示例和脚本
+  □ 示例配置文件准备好
+  □ 示例代码可用
+  □ 日志输出清晰
+
+
+【最终检查】
+─────────────────────────────────────
+
+☐ 安全检查
+  □ 不包含测试 Token 或真实密钥
+  □ 不包含调试信息
+  □ 不包含开发者联系方式
+  □ 隐私信息已清理
+
+☐ 兼容性检查
+  □ 支持的 Windows 版本正确
+  □ 支持的 Mac OS 版本正确
+  □ 支持的 Linux 发行版正确
+  □ GPU 驱动要求已文档化
+
+☐ 交付物检查
+  ⬜ 打包完成
+  ⬜ 文件结构正确
+  ⬜ 可执行文件存在
+  ⬜ 数据文件夹存在
+  ⬜ 文档已包含
+  ⬜ 配置示例已包含
+
+☐ 发布前最后检查
+  □ 所有 TODO 注释已清理
+  □ 没有调试代码残留
+  □ 错误处理完整
+  □ 日志级别设置正确
+
+
+【打包命令参考】
+─────────────────────────────────────
+
+【在 Unity Editor 中】
+Build > Build Settings > Build
+
+【使用命令行】
+
+Windows 打包：
+```
+Unity.exe -buildWindows64Player output/PecJamDirector.exe ^
+  -projectPath . ^
+  -logFile build.log
+```
+
+Mac 打包：
+```
+/Applications/Unity/Unity.app/Contents/MacOS/Unity \
+  -buildOsXUniversalPlayer output/PecJamDirector.app \
+  -projectPath . \
+  -logFile build.log
+```
+
+Linux 打包：
+```
+Unity -buildLinux64Player output/PecJamDirector \
+  -projectPath . \
+  -logFile build.log
+```
+
+
+【打包后分发检查】
+─────────────────────────────────────
+
+☐ 平台检查
+  □ Windows 版本在 Windows 上测试
+  □ Mac 版本在 Mac 上测试
+  □ Linux 版本在 Linux 上测试
+
+☐ 不同机器测试
+  □ 低端机器（老旧硬件）
+  □ 中端机器（标准硬件）
+  □ 高端机器（新硬件）
+
+☐ 网络环境测试
+  □ 在线网络环境
+  □ 离线网络环境
+  □ VPN 或代理后测试
+
+
+【常见问题预防】
+─────────────────────────────────────
+
+【打包会失败如果】
+☐ ✓ 最常见的失败原因：
+  • Assets 文件夹中有编译错误
+  • 某些脚本缺少依赖
+  • 某些资源文件损坏
+  • 磁盘空间不足
+  • 权限不足
+
+【预防措施】
+  □ 在 Editor 中运行游戏测试
+  □ 检查 Console 没有错误
+  □ 清理 Library 文件夹后重试
+  □ 确保有足够的磁盘空间（至少 10-20GB）
+  □ 以管理员身份运行 Unity
+
+
+【快速打包步骤】
+─────────────────────────────────────
+
+1️⃣ 完成上述所有检查
+2️⃣ File > Build Settings
+3️⃣ 选择平台和输出路径
+4️⃣ 点击 Build
+5️⃣ 等待编译完成（可能需要 5-30 分钟）
+6️⃣ 测试生成的可执行文件
+7️⃣ 准备分发文件和文档
+
+
+【故障排查】
+─────────────────────────────────────
+
+【问题】打包失败，显示脚本错误
+【解决】
+  1. 检查 Assets/ 中的红色错误
+  2. 修复所有编译错误
+  3. 关闭 Unity，清理 Library 文件夹
+  4. 重打开项目并重试
+
+【问题】打包成功但游戏无法启动
+【解决】
+  1. 查看游戏日志文件
+  2. 确保 SettingsConfig.json 存在且有效
+  3. 确保 GameStartupInitializer 在启动场景中
+  4. 检查 Console 是否有初始化错误
+
+【问题】游戏启动但找不到文件
+【解决】
+  1. 检查文件路径是否正确
+  2. 使用绝对路径而不是相对路径测试
+  3. 确保文件权限允许读取
+  4. 检查文件路径中是否有中文或特殊字符
+
+【问题】打包文件太大（超过 5GB）
+【解决】
+  1. 检查 Assets 中是否有未压缩的大文件
+  2. 压缩纹理和音频
+  3. 移除未使用的资源
+  4. 禁用不需要的平台支持
+
+
+════════════════════════════════════════════════════
+
+✅ 检查完成后，你的游戏已准备好发布！
+
+推荐顺序：
+1. 技术检查 → 2. 构建设置 → 3. 打包
+→ 4. 测试 → 5. 文档 → 6. 分发
+
+祝打包顺利！ 🎮
+
+════════════════════════════════════════════════════

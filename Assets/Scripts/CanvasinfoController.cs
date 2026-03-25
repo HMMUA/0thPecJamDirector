@@ -77,24 +77,28 @@ public class CanvasinfoController : MonoBehaviour
         
         if(directorSystem.playlist[directorSystem.currentIndex+1].isMainStage == 1)
         {
+            Debug.Log("内场");
             //内场
             stageSprite.gameObject.SetActive(true);
             stageSprite.sprite = neichang;
         }
         else if(directorSystem.playlist[directorSystem.currentIndex+1].isDarkHorse)
         {
+            Debug.Log("黑马");
             //黑马
             stageSprite.gameObject.SetActive(true);
             stageSprite.sprite = heima;
         }
         else if(directorSystem.playlist[directorSystem.currentIndex+1].isMainStage == 0)
         {
+            Debug.Log("外场");
             //外场
             stageSprite.gameObject.SetActive(true);
             stageSprite.sprite = waichang;
         }
         else
         {
+            Debug.Log("无场");
             //无场
             stageSprite.gameObject.SetActive(true);
             stageSprite.gameObject.SetActive(false);

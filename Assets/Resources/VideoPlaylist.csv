@@ -1,4 +1,4 @@
-﻿id,submissionTrack,isMainStage,number,isDarkHorse,isInterval,artist,title,designer,isLoop,videoInternetUrl,imageInternetUrl
+﻿ID,Track,Stage,Index,DarkHorse,isInterval,Composers,Title,Designers,isLoop,RenderVideoURL,IllustrationURL
 Comp3,,,,,1,,,,0,,
 yjtJPFfER5PVy2O8,RG,0,1,1,0,DECO*27,ヒバナ -Reloaded-,"PhiEdit -Reloaded- vs. ""我们是冠军!""",0,https://res.phizone.cn/ZgvQaCYC7hR5Q9o0jhi5ZKBsKNqsnOPE/%5BIlith%5D%20%E3%83%92%E3%83%90%E3%83%8A%20-Reloaded-%20%5BIN%20Lv.15%5D%20%40%202026-03-02_00-33-06.mp4,https://res.phizone.cn/F2vvD3Bxeg2NdIvsxpzaiTbt8tBXuYM5/PecJam_Illustration_g2QIcuUJZFHF4eDC_iPXa.png
 IntervalTest1,,,,,1,,,,0,,

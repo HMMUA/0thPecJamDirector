@@ -5,6 +5,8 @@ using System.IO;
 using UnityEngine.Networking;
 using UnityEngine.Video;
 using UnityEngine.UI;
+using TMPro;
+using DG.Tweening;
 
 [RequireComponent(typeof(VideoPlayer))]
 
@@ -62,7 +64,7 @@ public class DirectorSystem : MonoBehaviour
     [Header("播放器引用")]
     public VideoPlayer videoPlayer;
 
-
+    public TMP_Text infoText; // 用于显示当前视频信息的文本组件（可选）
 
 
     [Header("播放列表")]
@@ -70,6 +72,8 @@ public class DirectorSystem : MonoBehaviour
 
     public TransitionController transitionController; // 过渡控制器引用（可选）
     public float preEndTriggerTime = 2.5f; // 触发预留函数的时间点（单位：秒）
+
+    public float videoStartDelay = 0.5f; // 
 
     // 当前播放的索引
     public int currentIndex = -1;
@@ -126,6 +130,52 @@ public class DirectorSystem : MonoBehaviour
                 OnVideoAlmostEnded();
             }
         }
+
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            LoadPlaylistFromTable();
+            AnnounceInfo("加载播放列表");
+        }
+
+        if(Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftShift))
+        {
+            StartPlaylist();
+            AnnounceInfo("开始播放列表");
+        }
+
+        if(Input.GetKeyDown(KeyCode.N) && Input.GetKey(KeyCode.LeftShift))
+        {
+            PlayNextVideo();
+            AnnounceInfo("播放下一首");
+        }
+
+        if(Input.GetKeyDown(KeyCode.J) && Input.GetKey(KeyCode.LeftShift))
+        {
+            OnClickNextButton();
+            AnnounceInfo("跳到当前视频末尾");
+        }
+
+        if(Input.GetKeyDown(KeyCode.C) && Input.GetKey(KeyCode.LeftShift))
+        {
+            EnablePreEndCheck();
+            AnnounceInfo("取消循环");
+        }
+
+        if(Input.GetKeyDown(KeyCode.P) && Input.GetKey(KeyCode.LeftShift))
+        {
+            if(videoPlayer.isPlaying)
+            {
+                videoPlayer.Pause();
+                AnnounceInfo("暂停播放");
+            }
+            else
+            {
+                videoPlayer.Play();
+                AnnounceInfo("继续播放");
+            }
+        }
+        
+
     }
 
     // ================== 功能 1：从表里导入播放列表 ==================
@@ -135,12 +185,23 @@ public class DirectorSystem : MonoBehaviour
     public void LoadPlaylistFromTable()
     {
         playlist.Clear();
-        tableData = Resources.Load<TextAsset>("VideoPlaylist"); // 假设你的表格数据放在 Resources 文件夹下
-        string[] lines = tableData.text.Split(new char[] { '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
+        
+        // 从 StreamingAssets 加载 VideoPlaylist.csv
+        string playlistPath = System.IO.Path.Combine(Application.streamingAssetsPath, "VideoPlaylist.csv");
+        if (!System.IO.File.Exists(playlistPath))
+        {
+            Debug.LogError($"❌ VideoPlaylist.csv 文件未找到！路径：{playlistPath}");
+            AnnounceInfo("播放列表文件未找到");
+            return;
+        }
+
+        string playlistText = System.IO.File.ReadAllText(playlistPath);
+        string[] lines = playlistText.Split(new char[] { '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
         
         if (lines.Length == 0)
         {
             Debug.LogWarning("表格数据为空！");
+            AnnounceInfo("表格数据为空");
             return;
         }
         
@@ -169,30 +230,30 @@ public class DirectorSystem : MonoBehaviour
             VideoData data = new VideoData();
             
             // 根据表头名字自动映射字段
-            if (columnIndex.ContainsKey("id"))
-                data.id = fields[columnIndex["id"]].Trim();
-            if (columnIndex.ContainsKey("submissionTrack"))
-                data.submissionTrack = fields[columnIndex["submissionTrack"]].Trim();
-            if (columnIndex.ContainsKey("isMainStage"))
-                data.isMainStage = fields[columnIndex["isMainStage"]].Trim() == "1" ? 1 : (fields[columnIndex["isMainStage"]].Trim() == "2" ? 2 : 0);
-            if (columnIndex.ContainsKey("number"))
-                data.number = fields[columnIndex["number"]].Trim();
-            if (columnIndex.ContainsKey("isDarkHorse"))
-                data.isDarkHorse = fields[columnIndex["isDarkHorse"]].Trim() == "1";
+            if (columnIndex.ContainsKey("ID"))
+                data.id = fields[columnIndex["ID"]].Trim();
+            if (columnIndex.ContainsKey("Track"))
+                data.submissionTrack = fields[columnIndex["Track"]].Trim();
+            if (columnIndex.ContainsKey("Stage"))
+                data.isMainStage = fields[columnIndex["Stage"]].Trim() == "1" ? 1 : (fields[columnIndex["Stage"]].Trim() == "2" ? 2 : 0);
+            if (columnIndex.ContainsKey("Index"))
+                data.number = fields[columnIndex["Index"]].Trim();
+            if (columnIndex.ContainsKey("DarkHorse"))
+                data.isDarkHorse = fields[columnIndex["DarkHorse"]].Trim() == "1";
             if (columnIndex.ContainsKey("isInterval"))
                 data.isInterval = fields[columnIndex["isInterval"]].Trim() == "1";
-            if (columnIndex.ContainsKey("artist"))
-                data.artist = fields[columnIndex["artist"]].Trim();
-            if (columnIndex.ContainsKey("title"))
-                data.title = fields[columnIndex["title"]].Trim();
-            if (columnIndex.ContainsKey("designer"))
-                data.designer = fields[columnIndex["designer"]].Trim();
+            if (columnIndex.ContainsKey("Composers"))
+                data.artist = fields[columnIndex["Composers"]].Trim();
+            if (columnIndex.ContainsKey("Title"))
+                data.title = fields[columnIndex["Title"]].Trim();
+            if (columnIndex.ContainsKey("Designers"))
+                data.designer = fields[columnIndex["Designers"]].Trim();
             if (columnIndex.ContainsKey("isLoop"))
                 data.isLoop = fields[columnIndex["isLoop"]].Trim() == "1";
-            if (columnIndex.ContainsKey("videoInternetUrl"))
-                data.videoInternetUrl = fields[columnIndex["videoInternetUrl"]].Trim();
-            if (columnIndex.ContainsKey("imageInternetUrl"))
-                data.imageInternetUrl = fields[columnIndex["imageInternetUrl"]].Trim();
+            if (columnIndex.ContainsKey("RenderVideoURL"))
+                data.videoInternetUrl = fields[columnIndex["RenderVideoURL"]].Trim();
+            if (columnIndex.ContainsKey("IllustrationURL"))
+                data.imageInternetUrl = fields[columnIndex["IllustrationURL"]].Trim();
             
             // 检查必需字段
             if (string.IsNullOrEmpty(data.id))
@@ -778,6 +839,14 @@ public class DirectorSystem : MonoBehaviour
                 Debug.LogError($"视频 '{currentData.id}' 没有关联的 VideoClip 或 URL，无法播放！");
                 return;
             }
+
+            //在首帧暂停1s后播放
+                videoPlayer.Prepare();
+                videoPlayer.prepareCompleted += (vp) =>
+                {
+                    vp.Pause();
+                    DOVirtual.DelayedCall(videoStartDelay, () => vp.Play());
+                };
         }
 
         // 加载封面 Sprite（如果有 URL 且未加载）
@@ -847,5 +916,37 @@ public class DirectorSystem : MonoBehaviour
         enablePreEndCheck = true;
         videoPlayer.isLooping = false; // 取消循环播放，启用结束检查
         Debug.Log("已启用视频即将结束检查。");
+    }
+
+
+    public void AnnounceInfo(string info)
+    {
+        infoText.text = info;
+        infoText.DOFade(1f, 0.2f).OnComplete(() =>
+        {
+            infoText.DOFade(0f, 0.5f).SetDelay(2f);
+        });
+        // 可选：添加动画或定时
+
+    }
+
+    public void VideoPause()
+    {
+        if (videoPlayer.isPlaying)
+        {
+            videoPlayer.Pause();
+            isPlaying = false;
+            Debug.Log("视频已暂停。");
+        }
+    }
+    
+     public void VideoResume()
+    {
+        if (!videoPlayer.isPlaying)
+        {
+            videoPlayer.Play();
+            isPlaying = true;
+            Debug.Log("视频已恢复播放。");
+        }
     }
 }

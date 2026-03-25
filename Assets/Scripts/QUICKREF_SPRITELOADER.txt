@@ -1,0 +1,214 @@
+╔════════════════════════════════════════════════════════════╗
+║         TransitionController - SpriteLoader 集成            ║
+║                    快速参考卡                               ║
+╚════════════════════════════════════════════════════════════╝
+
+【核心变化】
+
+✓ TransitionController 添加了 SpriteLoader 集成
+✓ 所有 Sprite 加载从 Resources → 智能双路加载
+  - 首选：绝对路径（通过 SpriteLoader）
+  - 备选：Resources 文件夹
+✓ SettingsManager 自动应用配置
+
+
+【配置文件】
+
+SettingsConfig.json 中的 SpriteLoader 部分：
+
+{
+  "SpriteLoader": {
+    "spriteResourcePath": "E:\\0th\\Sprites",
+    "useAbsolutePath": true
+  }
+}
+
+
+【文件命名规则】
+
+基础文件名 = {videoId}{suffix}
+
+后缀类型：
+| 用途       | 后缀      | 示例             |
+|-----------|----------|------------------|
+| 标题      | _T       | A_001_T.png     |
+| 标题描边  | _T_O     | A_001_T_O.png   |
+| 谱师      | _D       | A_001_D.png     |
+| 谱师描边  | _D_O     | A_001_D_O.png   |
+| 曲师      | _A       | A_001_A.png     |
+| 曲师描边  | _A_O     | A_001_A_O.png   |
+
+
+【目录结构】
+
+E:\0th\Sprites\
+├── A_001_T.png
+├── A_001_T_O.png
+├── A_001_D.png
+├── A_001_D_O.png
+├── A_001_A.png
+├── A_001_A_O.png
+└── ... 其他文件
+
+
+【加载流程】
+
+VideoData.id = "A_001"
+         ↓
+ResetInformation() 被调用
+         ↓
+LoadSpriteWithFallback("A_001", "_T")
+         ↓
+SpriteLoader.LoadSprite("A_001_T")  ← 绝对路径
+    失败 ↓ 成功
+         ↓
+Resources.Load("Texture/A_001_T")   ← 备选方案
+    失败 ↓ 成功
+         ↓
+返回 Sprite 或 null
+
+
+【新增方法】
+
+公开方法：
+  ConfigureSpriteLoader(string resourcePath, bool useAbsolute)
+  - 手动配置 SpriteLoader
+
+私有方法：
+  LoadSpriteWithFallback(string baseName, string suffix)
+  - 智能双路加载（绝对路径 → Resources）
+
+  TryLoadFromResources(string baseName, string suffix)
+  - 从 Resources 加载
+
+
+【自动流程】
+
+游戏启动
+  ↓
+SettingsManager.LoadSettings()
+  - 读取 SettingsConfig.json
+  ↓
+SettingsManager.ApplySettings()
+  - 找到 TransitionController
+  - 调用 ConfigureSpriteLoader()
+  - 应用配置
+
+
+【日志检查】
+
+启用状态日志：
+✓ [SpriteLoader] Sprite 加载路径已更新：...
+✓ [SpriteLoader] 加载模式已设置：绝对路径
+✓ [TransitionController] SpriteLoader 配置已应用
+✓ ✓ 标题[0] 加载成功：A_001_T
+
+失败状态日志：
+✗ 标题[0] 加载失败：A_001_T
+[TransitionController] 未从 SpriteLoader 找到 ...，尝试从 Resources 加载...
+
+
+【打包检查清单】
+
+打包前 ✓
+□ 所有 Sprite 文件放在指定文件夹
+□ 文件名遵循规则（{id}{suffix}）
+□ SettingsConfig.json 中的路径正确
+□ 是否同时需要保留 Resources/Texture 内的文件
+
+打包后 ✓
+□ 编辑 SettingsConfig.json
+□ 设置 spriteResourcePath 为实际路径
+□ 确认所有 Sprite 文件都存在
+□ 测试加载（查看 Console 日志）
+□ 检查是否需要设置 useAbsolutePath = true/false
+
+
+【兼容性说明】
+
+向前兼容 ✓
+- 如果 SpriteLoader 加载失败，自动降级到 Resources
+- 现有的 Resources/Texture 文件不需要删除
+- 既有游戏可以继续工作
+
+新功能支持 ✓
+- 可以完全使用外部路径
+- 可以混合使用 Resources 和外部路径
+- 打包后也可以修改 Sprite 路径
+
+
+【常见文件名错误】
+
+❌ 错误：
+A_001_t.png          (大小写不匹配)
+A_001_Title.png      (后缀应为 _T)
+A_001_outline.png    (后缀应为 _T_O 或 _D_O)
+A_001_D_O_O.png      (多余的后缀)
+
+✓ 正确：
+A_001_T.png          (标题)
+A_001_T_O.png        (标题描边)
+A_001_D.png          (谱师)
+A_001_D_O.png        (谱师描边)
+A_001_A.png          (曲师)
+A_001_A_O.png        (曲师描边)
+
+
+【支持的图片格式】
+
+.png    ★★★ (推荐，支持透明)
+.jpg    ★★★ (推荐，文件小)
+.jpeg   ★★★ (同 jpg)
+.bmp    ★★  (支持，较大)
+.tga    ★★  (支持，较大)
+
+
+【关键配置项】
+
+字段                    默认值                描述
+spriteResourcePath     E:\\0th\\Sprites      Sprite 文件夹路径
+useAbsolutePath        true                  是否使用绝对路径
+
+
+【相关文档】
+
+📄 SPRITE_LOADER_README.txt         - 详细 Sprite 加载说明
+📄 TRANSITIONCONTROLLER_INTEGRATION.txt - 完整集成指南
+📄 SETTINGS_GUIDE.txt               - 设置系统总体说明
+
+
+【快速命令】
+
+# 清空缓存（在脚本中）
+SpriteLoader sl = GetComponent<SpriteLoader>();
+sl.ClearCache();
+
+# 重新加载配置
+SettingsManager.Instance.ReloadSettings();
+
+# 手动配置
+TransitionController tc = GetComponent<TransitionController>();
+tc.ConfigureSpriteLoader("E:\\Sprites", true);
+
+
+【故障排查快速指南】
+
+[症状] Sprite 未显示
+→ 查看 Console 有无加载错误信息
+→ 确认文件是否存在和命名是否正确
+→ 检查 spriteResourcePath 是否正确
+
+[症状] 加载缓慢
+→ 检查 Sprite 文件大小和数量
+→ 考虑压缩图片或减少同时加载的数量
+
+[症状] 配置未应用
+→ 检查 SettingsConfig.json 的 JSON 格式
+→ 重启游戏
+→ 查看 Console 是否有配置应用的日志
+
+[症状] 混合加载（有的从 Resources，有的从外部）
+→ 这是正常表现
+→ 优先级：绝对路径 > Resources
+
+═══════════════════════════════════════════════════════════

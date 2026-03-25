@@ -1,0 +1,481 @@
+╔═══════════════════════════════════════════════════╗
+║      PecJamDirector 工程打包指南                  ║
+║      （包含路径配置、资源管理）                   ║
+╚═══════════════════════════════════════════════════╝
+
+【打包概览】
+
+该工程采用配置文件 + 设置管理系统：
+- 配置文件自动打包进游戏
+- 打包后用户可直接编辑配置
+- 支持绝对路径和相对路径
+- 多系统（Windows/Mac/Linux）兼容
+
+
+【打包前准备清单】
+
+□ 1. 检查配置文件
+   - Assets/Resources/SettingsConfig.json 已填写完整
+   - 包含所有需要的路径
+
+□ 2. 整理资源文件
+   - 视频文件：E:\0th\Videos\
+   - 图片资源：E:\0th\Sprites\
+   - 其他资源：按需准备
+
+□ 3. 检查脚本
+   - SettingsManager.cs - 设置管理器
+   - DirectorSystem.cs - 视频管理
+   - SpriteLoader.cs - 图片加载
+   - TransitionController.cs - 转场控制
+
+□ 4. 生成文档
+   - 为用户准备配置说明文档
+   - 说明如何编辑 SettingsConfig.json
+
+
+【Unity Build Settings 配置】
+
+【场景设置】
+Scenes in Build:
+  [0] Assets/Scenes/MainScene (或你的启动场景)
+  [1] 其他场景...
+
+【质量设置】
+Project Settings > Quality:
+  ✓ 建议使用较低到中等质量设置
+  ✓ 根据目标平台优化
+
+【播放器设置】
+Project Settings > Player:
+
+【Product Name】
+  → PecJamDirector (或你想要的名称)
+
+【Default Icon】
+  → 设置游戏图标
+
+【Resolution】
+  → 设置默认分辨率（1920x1080 推荐）
+
+【Splash Screen】
+  → 可选：添加启动画面
+
+
+【打包流程】
+
+【步骤 1: 打开 Build Settings】
+────────────────────────────────
+1. 文件菜单 → Build Settings
+2. 选择目标平台：
+   - Windows
+   - Mac
+   - WebGL
+   - 其他
+
+【步骤 2: 配置场景】
+────────────────────
+Scenes in Build:
+  ✓ 拖入需要打包的所有场景
+  ✓ 确保 MainScene 在最前面（索引 0）
+
+【步骤 3: 执行打包】
+────────────────────
+1. 点击 "Build PC Standalone" 或对应平台
+2. 选择输出文件夹
+3. 等待编译完成
+
+【步骤 4: 获得可执行文件】
+─────────────────────────────
+打包完成后，会生成：
+  [Windows]
+    PecJamDirector_Data/     ← 游戏数据
+    PecJamDirector.exe       ← 可执行文件
+    UnityPlayer.dll          ← Unity运行库
+  
+  [Mac]
+    PecJamDirector.app/      ← 应用包
+      Contents/
+        Resources/
+          Data/              ← 游戏数据
+
+
+【打包后目录结构】
+
+【Windows】
+────────────────────────────────────
+PecJamDirector_Data/
+├── Resources/
+│   └── SettingsConfig.json      ← ✓ 用户可编辑
+├── Scenes/
+│   └── MainScene.unity
+├── Managed/
+│   └── Assembly-CSharp.dll
+├── Mono/
+│   └── etc/
+└── StreamingAssets/             ← 可选：流式资源
+
+PecJamDirector.exe
+UnityPlayer.dll
+
+【Mac】
+────────────────────────────────────
+PecJamDirector.app/
+├── Contents/
+│   ├── Info.plist
+│   ├── MacOS/
+│   │   └── PecJamDirector
+│   ├── Resources/
+│   │   ├── Data/
+│   │   │   ├── Resources/
+│   │   │   │   └── SettingsConfig.json
+│   │   │   ├── Scenes/
+│   │   │   └── Managed/
+│   │   └── icon.icns
+
+【Linux】
+────────────────────────────────────
+PecJamDirector_Data/
+├── Resources/
+│   └── SettingsConfig.json
+├── Scenes/
+└── Managed/
+
+PecJamDirector.x86_64
+
+
+【配置文件位置】
+
+【打包前】
+  Assets/Resources/SettingsConfig.json
+
+【打包后】
+
+| 平台      | 路径                                          |
+|----------|----------------------------------------------|
+| Windows  | PecJamDirector_Data/Resources/SettingsConfig.json |
+| Mac      | PecJamDirector.app/Contents/Resources/Data/Resources/SettingsConfig.json |
+| Linux    | PecJamDirector_Data/Resources/SettingsConfig.json |
+
+用户需要编辑该文件来配置：
+  - API 服务接口
+  - 鉴权 Token 和 Cookie
+  - 视频加载路径
+  - 图片加载路径
+
+
+【用户配置指南】（打包后提供）
+
+用户需要在启动游戏前编辑 SettingsConfig.json：
+
+【1. 编辑配置文件】
+────────────────────
+打开文本编辑器（记事本、VSCode 等）
+编辑：PecJamDirector_Data/Resources/SettingsConfig.json
+
+【2. 配置示例】
+────────────────────
+
+{
+  "LiveProgressReporter": {
+    "apiUrl": "https://api.example.com/api/...",
+    "timeoutSeconds": 15,
+    "authorizationHeader": "Bearer YOUR_TOKEN_HERE",
+    "cookieHeader": "session=YOUR_COOKIE_HERE"
+  },
+  "DirectorSystem": {
+    "videoResourcePath": "E:\\videos"  或 "./videos"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "E:\\sprites" 或 "./sprites",
+    "useAbsolutePath": true
+  }
+}
+
+【3. 路径配置】
+────────────────
+
+Windows 绝对路径：
+  "E:\\videos"           ✓ 推荐
+  "D:\\content\\videos"  ✓ 推荐
+
+Windows 相对路径（相对于 exe файл）：
+  "./videos"             ✓ 可选
+  "../resources/videos"  ✓ 可选
+
+Mac/Linux 绝对路径：
+  "/home/user/videos"    ✓ 推荐
+  "/Volumes/Data/videos" ✓ 推荐
+
+Mac/Linux 相对路径：
+  "./videos"             ✓ 可选
+  "../resources/videos"  ✓ 可选
+
+【4. 启动游戏】
+────────────────
+
+编辑保存后，启动游戏：
+  - SettingsManager 自动加载配置
+  - 游戏应用配置的路径
+  - Console 显示加载日志
+
+
+【资源组织方案】
+
+【方案 A】集中式（推荐用于测试/演示）
+────────────────────────────────────
+项目所有资源放在一个文件夹：
+
+C:\GameAssets\
+├── Videos\
+│   ├── A_001_Video.mp4
+│   ├── B_002_Video.mp4
+│   └── ...
+├── Sprites\
+│   ├── A_001_T.png
+│   ├── A_001_D.png
+│   └── ...
+└── readme.txt
+
+配置文件：
+{
+  "DirectorSystem": {
+    "videoResourcePath": "C:\\GameAssets\\Videos"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "C:\\GameAssets\\Sprites"
+  }
+}
+
+【方案 B】分散式（推荐用于生产环境）
+────────────────────────────────────
+资源按位置分散：
+
+D:\Videos\
+├── season1\
+│   ├── A_001_Video.mp4
+│   └── ...
+└── season2\
+    └── ...
+
+E:\Assets\Images\
+├── sprites\
+│   ├── A_001_T.png
+│   └── ...
+└── textures\
+    └── ...
+
+配置文件：
+{
+  "DirectorSystem": {
+    "videoResourcePath": "D:\\Videos\\season1"  或 "D:\\Videos\\season2"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "E:\\Assets\\Images\\sprites"
+  }
+}
+
+【方案 C】相对路径（推荐用于便携版）
+────────────────────────────────────
+所有资源相对于游戏位置：
+
+PecJamDirector\
+├── PecJamDirector_Data\
+│   └── Resources\
+│       └── SettingsConfig.json
+├── PecJamDirector.exe
+├── Resources\
+│   ├── Videos\
+│   │   ├── A_001_Video.mp4
+│   │   └── ...
+│   └── Sprites\
+│       ├── A_001_T.png
+│       └── ...
+
+配置文件：
+{
+  "DirectorSystem": {
+    "videoResourcePath": "./Resources/Videos"
+  },
+  "SpriteLoader": {
+    "spriteResourcePath": "./Resources/Sprites"
+  }
+}
+
+
+【打包优化建议】
+
+【1. 减少包体大小】
+───────────────────
+- 删除不需要的场景
+- 压缩贴图和音频
+- 移除未使用的插件
+
+【2. 性能优化】
+───────────────────
+- 编辑器：Edit > Project Settings > Quality
+- 选择合适的质量预设
+- 根据目标硬件优化
+
+【3. 构建选项】
+───────────────────
+Build Settings:
+  ☑ Development Build - 用于测试
+  ☑ Autoconnect Profiler - 用于性能分析
+  ☑ Deep Profile - 详细分析
+
+
+【文件清单】
+
+【必需文件】
+✓ Assets/Resources/SettingsConfig.json
+✓ Assets/Scripts/SettingsManager.cs
+✓ Assets/Scripts/DirectorSystem.cs
+✓ Assets/Scripts/SpriteLoader.cs
+✓ Assets/Scripts/TransitionController.cs
+✓ Assets/Scripts/GameStartupInitializer.cs
+✓ 启动场景（MainScene 或自定义）
+
+【可选文件】
+- Assets/Resources/ - 其他资源
+- Assets/StreamingAssets/ - 流式资源
+- Assets/Prefab/ - 预制体
+
+
+【打包后分发】
+
+【分发清单】
+────────────────────────────────────────
+分发给用户的文件：
+
+□ 游戏可执行程序
+  - PecJamDirector.exe (Windows)
+  - PecJamDirector.app (Mac)
+  - PecJamDirector.x86_64 (Linux)
+
+□ 游戏数据文件夹
+  - PecJamDirector_Data/
+
+□ 依赖文件
+  - UnityPlayer.dll (Windows)
+  - 其他 DLL/SO 文件
+
+□ 配置文件（记得提供默认模板）
+  - SettingsConfig.json
+  - 提供填写说明文档
+
+□ 说明文档
+  - 配置指南（README）
+  - 路径配置说明
+  - 常见问题解答
+
+【压缩分发】
+────────────────────
+将打包文件夹或 exe 等压缩：
+  PecJamDirector.zip
+  or
+  PecJamDirector.rar
+  or
+  PecJamDirector.7z
+
+
+【故障排查】
+
+【问题】游戏找不到 SettingsConfig.json
+→ 检查文件是否在正确位置
+→ 确保文件没有被误删或移动
+→ 查看 Console 中的错误信息
+
+【问题】路径配置无效
+→ 检查路径格式（Windows 用 \\）
+→ 确保文件夹确实存在
+→ 尝试使用绝对路径测试
+
+【问题】配置未应用
+→ 检查 JSON 格式是否有效
+→ 确保重启游戏后重试
+→ 查看 Console 输出的应用日志
+
+【问题】找不到视频或图片文件
+→ 检查路径是否正确
+→ 确保文件真的在该位置
+→ 大小写是否正确（某些系统敏感）
+
+【问题】运行缓慢或卡顿
+→ 检查视频/图片文件大小
+→ 考虑减少同时加载的资源
+→ 升级硬件配置
+
+
+【多平台打包建议】
+
+【Windows 打包】
+────────────────
+1. 选择 PC, Mac & Linux Standalone
+2. Target Platform: Windows
+3. Architecture: x86_64 (推荐)
+4. Build 后在 Windows 目标机器测试
+
+【Mac 打包】
+────────────
+1. 选择 PC, Mac & Linux Standalone
+2. Target Platform: Mac OS X
+3. 在 Mac 机器上打包
+4. 签名和公证（如果需要分发）
+
+【Linux 打包】
+────────────
+1. 选择 PC, Mac & Linux Standalone
+2. Target Platform: Linux
+3. Architecture: x86_64
+4. 在 Linux 机器上打包和测试
+
+
+【持续集成建议】
+
+如果使用自动化，可配置的参数：
+  - 构建脚本中指定场景
+  - 自动填充版本号
+  - 自动上传到分发平台
+  - 生成版本日志
+
+
+【版本管理】
+
+建议文件名规范：
+  PecJamDirector_v1.0.0_Windows.zip
+  PecJamDirector_v1.0.0_Mac.dmg
+  PecJamDirector_v1.0.0_Linux.tar.gz
+
+内部版本控制：
+  - 在代码中标记版本
+  - 生成版本记录
+  - 维护更新日志
+
+
+【安全建议】
+
+⚠ 不要在打包文件中暴露：
+  ✗ API密钥和Token（应由用户配置）
+  ✗ 数据库连接字符串
+  ✗ 内部服务器地址
+
+✓ 应该：
+  ✓ 使用占位符或空值
+  ✓ 提供配置文档
+  ✓ 要求用户自己填写敏感信息
+
+
+【发布检查清单】
+
+□ 游戏能正常启动
+□ 所有关键功能可用
+□ 配置文件和路径工作正常
+□ 在不同系统上测试过
+□ 性能符合预期
+□ 用户文档齐全
+□ 错误和异常被适当处理
+□ 日志清晰，便于调试
+
+
+════════════════════════════════════════════════
