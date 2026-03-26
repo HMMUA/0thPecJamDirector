@@ -78,6 +78,7 @@ public class TransitionController : MonoBehaviour
         // 加载曲绘
         for (int i = 0; i < image.Length; i++)
         {
+
                 if (videoData.coverSprite != null)
                 {
                     image[i].sprite = videoData.coverSprite;
@@ -104,6 +105,14 @@ public class TransitionController : MonoBehaviour
         // 加载标题
         for (int i = 0; i < titleImage.Length; i++)
         {
+            if(videoData.title.ToLower() == "unknown")
+            {
+                //如果是UNKNOWN,加载Resources中的默认图片
+                Sprite defaultSprite = Resources.Load<Sprite>("Texture/Unknown");
+                titleImage[i].sprite = defaultSprite;
+                continue;
+            }
+
             Sprite sprite = LoadSpriteWithFallback(id, "_T");
             if (sprite != null)
             {
@@ -119,6 +128,15 @@ public class TransitionController : MonoBehaviour
         // 加载标题描边
         for (int i = 0; i < titleImageOutline.Length; i++)
         {
+            if(videoData.title.ToLower() == "unknown")
+            {
+                //如果是UNKNOWN,加载Resources中的默认图片
+                Sprite defaultSprite = Resources.Load<Sprite>("Texture/Unknown_O");
+                titleImageOutline[i].sprite = defaultSprite;
+                continue;
+            }
+
+
             Sprite sprite = LoadSpriteWithFallback(id, "_T_O");
             if (sprite != null)
             {
@@ -149,6 +167,14 @@ public class TransitionController : MonoBehaviour
         // 加载谱师
         for (int i = 0; i < designerImage.Length; i++)
         {
+            if(videoData.designer.ToLower() == "unknown")
+                {
+                    //如果是UNKNOWN,加载Resources中的默认图片
+                    Sprite defaultSprite = Resources.Load<Sprite>("Texture/Unknown");
+                    designerImage[i].sprite = defaultSprite;
+                    continue;
+                }
+
             Sprite sprite = LoadSpriteWithFallback(id, "_D");
             if (sprite != null)
             {
@@ -164,6 +190,13 @@ public class TransitionController : MonoBehaviour
         // 加载谱师描边
         for (int i = 0; i < designerImageOutline.Length; i++)
         {
+            if(videoData.designer.ToLower() == "unknown")
+                {
+                    //如果是UNKNOWN,加载Resources中的默认图片
+                    Sprite defaultSprite = Resources.Load<Sprite>("Texture/Unknown_O");
+                    designerImageOutline[i].sprite = defaultSprite;
+                    continue;
+                }
             Sprite sprite = LoadSpriteWithFallback(id, "_D_O");
             if (sprite != null)
             {
@@ -179,6 +212,14 @@ public class TransitionController : MonoBehaviour
         // 加载谱师遮罩
         for (int i = 0; i < designerImageMask.Length; i++)
         {
+            if(videoData.designer.ToLower() == "unknown")
+            {
+                //如果是UNKNOWN,加载Resources中的默认图片
+                Sprite defaultSprite = Resources.Load<Sprite>("Texture/Unknown_O");
+                designerImageMask[i].sprite = defaultSprite;
+                continue;
+            }
+
             Sprite sprite = LoadSpriteWithFallback(id, "_D");
             if (sprite != null)
             {
@@ -312,6 +353,17 @@ public class TransitionController : MonoBehaviour
     {
         directorSystem.PlayNextVideo();
     }
+
+    public void PausePlaying()
+    {
+        directorSystem.PauseCurrentVideo();
+    }
+
+    public void StartPlaying()
+    {
+        directorSystem.KeepPlayingCurrentVideo();
+    }
+
     public void HideCanvasInfo()
     {
         canvasinfoController.HideInfo();

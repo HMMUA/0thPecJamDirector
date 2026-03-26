@@ -21,7 +21,18 @@ public class LiveProgressReporter : MonoBehaviour
     [Tooltip("测试环境的 Cookie")]
     public string cookieHeader;
 
-    // 用于 JSON 序列化的数据结构
+    [Header("调试选项")]
+    [Tooltip("启用上报结果日志输出（仅用于调试）")]
+    public bool enableLogging = false;
+
+    // ==========================================
+    // 事件：供外部监听上报结果
+    // ==========================================
+
+    /// <summary>
+    /// 上报完成事件：参数 (isSuccess, message)
+    /// </summary>
+    public event System.Action<bool, string> OnReportCompleted;
     [System.Serializable]
     private class ReportBody
     {
@@ -89,18 +100,16 @@ public class LiveProgressReporter : MonoBehaviour
             // Unity 2020+ 使用 result 判断
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log($"[LiveProgressReporter] 成功上报正在播放的稿件: {entryId}");
-                //打印返回结果
-                Debug.Log($"[LiveProgressReporter] 接口返回: {request.downloadHandler.text}");
+                string successMessage = $"成功上报正在播放的稿件: {entryId}";
+                if (enableLogging) Debug.Log($"[LiveProgressReporter] {successMessage}");
+                OnReportCompleted?.Invoke(true, successMessage);
             }
             else
             {
                 bool isTimeout = !string.IsNullOrEmpty(request.error) && request.error.ToLower().Contains("timeout");
-                if (isTimeout)
-                {
-                    Debug.LogWarning($"[LiveProgressReporter] 上报超时（{timeoutSeconds}s），请检查网络或API响应性能。");
-                }
-                Debug.LogError($"[LiveProgressReporter] 上报失败: {request.error}\n返回内容: {request.downloadHandler.text}");
+                string errorMessage = isTimeout ? $"上报超时（{timeoutSeconds}s）" : $"上报失败: {request.error}";
+                if (enableLogging) Debug.LogWarning($"[LiveProgressReporter] {errorMessage}");
+                OnReportCompleted?.Invoke(false, errorMessage);
             }
         }
     }
@@ -124,18 +133,16 @@ public class LiveProgressReporter : MonoBehaviour
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log("[LiveProgressReporter] 成功移除当前播放稿件（休息/结束状态）");
-                //打印返回结果
-                Debug.Log($"[LiveProgressReporter] 接口返回: {request.downloadHandler.text}");
+                string successMessage = "成功移除当前播放稿件（休息/结束状态）";
+                if (enableLogging) Debug.Log($"[LiveProgressReporter] {successMessage}");
+                OnReportCompleted?.Invoke(true, successMessage);
             }
             else
             {
                 bool isTimeout = !string.IsNullOrEmpty(request.error) && request.error.ToLower().Contains("timeout");
-                if (isTimeout)
-                {
-                    Debug.LogWarning($"[LiveProgressReporter] 移除请求超时（{timeoutSeconds}s），请检查网络或API响应性能。");
-                }
-                Debug.LogError($"[LiveProgressReporter] 移除失败: {request.error}\n返回内容: {request.downloadHandler.text}");
+                string errorMessage = isTimeout ? $"移除请求超时（{timeoutSeconds}s）" : $"移除失败: {request.error}";
+                if (enableLogging) Debug.LogError($"[LiveProgressReporter] {errorMessage}");
+                OnReportCompleted?.Invoke(false, errorMessage);
             }
         }
     }

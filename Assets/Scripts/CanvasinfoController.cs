@@ -43,8 +43,8 @@ public class CanvasinfoController : MonoBehaviour
 
     public void ShowInfo()
     {
-        // stageText.text = directorSystem.playlist[directorSystem.currentIndex+1].stage;
-        // numberText.text = directorSystem.playlist[directorSystem.currentIndex+1].number;
+        // stageText.text = directorSystem.playlist[directorSystem.currentIndex].stage;
+        // numberText.text = directorSystem.playlist[directorSystem.currentIndex].number;
         // stageText.DOFade(1, 1f);
         // numberText.DOFade(1, 1f);
         AniShowInfo();
@@ -68,28 +68,28 @@ public class CanvasinfoController : MonoBehaviour
     public void AniShowInfo()
     {
         Debug.Log("ShowInfo");
-        stageText.text = directorSystem.playlist[directorSystem.currentIndex+1].submissionTrack;
-        numberText.text = directorSystem.playlist[directorSystem.currentIndex+1].number;
+        stageText.text = directorSystem.playlist[directorSystem.currentIndex].submissionTrack;
+        numberText.text = directorSystem.playlist[directorSystem.currentIndex].number;
         stageTextShadow.text = stageText.text;
         numberTextShadow.text = numberText.text;
 
 
         
-        if(directorSystem.playlist[directorSystem.currentIndex+1].isMainStage == 1)
+        if(directorSystem.playlist[directorSystem.currentIndex].isMainStage == 1)
         {
             Debug.Log("内场");
             //内场
             stageSprite.gameObject.SetActive(true);
             stageSprite.sprite = neichang;
         }
-        else if(directorSystem.playlist[directorSystem.currentIndex+1].isDarkHorse)
+        else if(directorSystem.playlist[directorSystem.currentIndex].isDarkHorse)
         {
             Debug.Log("黑马");
             //黑马
             stageSprite.gameObject.SetActive(true);
             stageSprite.sprite = heima;
         }
-        else if(directorSystem.playlist[directorSystem.currentIndex+1].isMainStage == 0)
+        else if(directorSystem.playlist[directorSystem.currentIndex].isMainStage == 0)
         {
             Debug.Log("外场");
             //外场

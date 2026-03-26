@@ -75,6 +75,8 @@ public class DirectorSystem : MonoBehaviour
 
     public float videoStartDelay = 0.5f; // 
 
+    public LiveProgressReporter liveProgressReporter; 
+
     // 当前播放的索引
     public int currentIndex = -1;
 
@@ -101,6 +103,7 @@ public class DirectorSystem : MonoBehaviour
     // 标记：当前视频是否已经触发过“倒数3秒”事件
     private bool hasTriggeredPreEnd = false;
     private bool isPlaying = false;
+    private bool isTrisitioning = false;
 
     // 标记：是否启用“视频即将结束”检查（循环视频默认禁用）
     private bool enablePreEndCheck = true;
@@ -139,26 +142,60 @@ public class DirectorSystem : MonoBehaviour
 
         if(Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftShift))
         {
-            StartPlaylist();
-            AnnounceInfo("开始播放列表");
+            if(isTrisitioning)
+            {
+                AnnounceInfo("当前正在转场中");
+            }
+            else
+            {
+                StartPlaylist();
+                AnnounceInfo("开始播放列表");
+            }
         }
 
         if(Input.GetKeyDown(KeyCode.N) && Input.GetKey(KeyCode.LeftShift))
         {
-            PlayNextVideo();
-            AnnounceInfo("播放下一首");
+            if(isTrisitioning)
+            {
+                AnnounceInfo("当前正在转场中");
+            }
+            else
+            {
+                PlayNextVideo();
+                AnnounceInfo("播放下一首");
+            }
         }
 
         if(Input.GetKeyDown(KeyCode.J) && Input.GetKey(KeyCode.LeftShift))
         {
-            OnClickNextButton();
-            AnnounceInfo("跳到当前视频末尾");
+            if(isTrisitioning)
+            {
+                AnnounceInfo("当前正在转场中");
+            }
+            else
+            {
+                OnClickNextButton();
+                AnnounceInfo("跳到当前视频末尾");
+            }
         }
 
         if(Input.GetKeyDown(KeyCode.C) && Input.GetKey(KeyCode.LeftShift))
         {
             EnablePreEndCheck();
             AnnounceInfo("取消循环");
+        }
+
+        if(Input.GetKeyDown(KeyCode.R) && Input.GetKey(KeyCode.LeftShift))
+        {
+            if(isTrisitioning)
+            {
+                AnnounceInfo("当前正在转场中");
+            }
+            else
+            {
+                ToTheEndOfLastVideo();
+                AnnounceInfo("回到上个视频末尾");
+            }
         }
 
         if(Input.GetKeyDown(KeyCode.P) && Input.GetKey(KeyCode.LeftShift))
@@ -266,6 +303,7 @@ public class DirectorSystem : MonoBehaviour
         }
         
         Debug.Log("播放列表已成功从表格导入，共 " + playlist.Count + " 个视频。");
+        AnnounceInfo("播放列表已导入成功");
         LinkVideoResources(); // 导入后自动链接视频资源
     }
 
@@ -493,6 +531,7 @@ public class DirectorSystem : MonoBehaviour
         else
         {
             Debug.Log("已完成所有网络视频预加载检测。");
+            AnnounceInfo("视频预加载完成");
         }
     }
 
@@ -592,6 +631,7 @@ public class DirectorSystem : MonoBehaviour
         else
         {
             Debug.Log("已完成所有网络封面图片预加载检测。");
+            AnnounceInfo("网络封面图片预加载完成");
         }
     }
 
@@ -727,6 +767,7 @@ public class DirectorSystem : MonoBehaviour
 
         currentIndex = 0;
         PlayVideo(currentIndex);
+        KeepPlayingCurrentVideo(); // 确保视频开始播放
     }
 
 
@@ -736,8 +777,11 @@ public class DirectorSystem : MonoBehaviour
     /// </summary>
     private void OnVideoAlmostEnded()
     {
+        //ReportLiveDelete();
+
         isPlaying = false;
         Debug.Log($"<color=green>【触发事件】</color> 视频 '{playlist[currentIndex].id}' 还差3秒结束！");
+        isTrisitioning = true;
         
         // 检查下一个视频
         if (currentIndex + 1 < playlist.Count)
@@ -775,11 +819,27 @@ public class DirectorSystem : MonoBehaviour
         if (currentIndex >= playlist.Count)
         {
             Debug.Log("播放列表已全部播放完毕！");
+            AnnounceInfo("播放列表已全部播放完毕！");
             videoPlayer.Stop();
             return;
         }
 
         PlayVideo(currentIndex);
+        // videoPlayer.Pause(); // 先暂停，等视频准备好后再播放（如果需要的话）
+        // isPlaying = false;
+
+    }
+
+    public void PauseCurrentVideo()
+    {
+        videoPlayer.Pause();
+        isPlaying = false;
+    }
+
+    public void KeepPlayingCurrentVideo()
+    {
+        videoPlayer.Play();
+         isPlaying = true;
     }
 
     public void OnClickNextButton()
@@ -798,7 +858,23 @@ public class DirectorSystem : MonoBehaviour
     // ================== 内部辅助播放方法 ==================
     private void PlayVideo(int index)
     {
+        isTrisitioning = false; // 重置过渡状态
         VideoData currentData = playlist[index];
+
+        if(!currentData.isInterval)
+        {
+            ReportLiveProgress(currentData.id); // 上报当前播放的视频 ID（或其他标识符）
+        }
+
+        if(index == playlist.Count - 1)
+        {
+            ReportLiveDelete(); // 如果是最后一个视频，清除直播进度
+        }
+
+        if(currentData.isInterval && currentData.title != null)
+        {
+            ReportExLiveProgress(currentData); // 如果是过渡视频且写了title，触发特殊直播进度上报
+        }
 
         // 如果是过渡视频，使用绝对路径加载本地视频文件
         if (currentData.isInterval)
@@ -840,13 +916,14 @@ public class DirectorSystem : MonoBehaviour
                 return;
             }
 
-            //在首帧暂停1s后播放
-                videoPlayer.Prepare();
-                videoPlayer.prepareCompleted += (vp) =>
-                {
-                    vp.Pause();
-                    DOVirtual.DelayedCall(videoStartDelay, () => vp.Play());
-                };
+            //在首帧暂停1s后播放（取消）
+                // videoPlayer.Prepare();
+                // videoPlayer.prepareCompleted += (vp) =>
+                // {
+                //     vp.Pause();
+                //     DOVirtual.DelayedCall(videoStartDelay, () => vp.Play());
+                // };
+            
         }
 
         // 加载封面 Sprite（如果有 URL 且未加载）
@@ -949,4 +1026,62 @@ public class DirectorSystem : MonoBehaviour
             Debug.Log("视频已恢复播放。");
         }
     }
+
+    public void ToTheEndOfLastVideo()
+    {
+        if (currentIndex > 0 && currentIndex < playlist.Count)
+        {
+            currentIndex--;
+            PlayVideo(currentIndex);
+            SkipToEnd();
+        }
+        else
+        {
+            Debug.LogWarning("没有上一个视频可播放！");
+        }
+    }
+
+    public void ReportLiveProgress(string entryId)
+    {
+        if (liveProgressReporter != null)
+        {
+            liveProgressReporter.ReportNowPlaying(entryId);
+        }
+    }
+
+
+    public void ReportLiveDelete()
+    {
+        if (liveProgressReporter != null)
+        {
+            liveProgressReporter.ClearNowPlaying();
+        }
+    }
+
+    public void ReportExLiveProgress(VideoData data)
+    {
+        if (liveProgressReporter != null && data.title != null)
+        {
+            string[] parts = data.title.Split('/');
+            if (parts.Length > 0)
+            {
+                float duration = (float)videoPlayer.length;
+                float interval = parts.Length > 1 ? duration / (parts.Length - 1) : 0f;
+                StartCoroutine(ReportProgressCoroutine(parts, interval));
+            }
+        }
+    }
+
+    private IEnumerator ReportProgressCoroutine(string[] parts, float interval)
+    {
+        for (int i = 0; i < parts.Length; i++)
+        {
+            liveProgressReporter.ReportNowPlaying(parts[i]);
+            if (i < parts.Length - 1)
+            {
+                yield return new WaitForSeconds(interval);
+            }
+        }
+    }
+
 }

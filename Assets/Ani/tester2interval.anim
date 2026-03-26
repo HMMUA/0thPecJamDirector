@@ -6341,6 +6341,13 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_Events:
+  - time: 0.65
+    functionName: PlayAudioByName
+    data: 0TH_Transition
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
   - time: 1.65
     functionName: HideCanvasInfo
     data: 
@@ -6348,15 +6355,36 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 4.45
+  - time: 1.75
     functionName: EndTransition
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 4.516667
+  - time: 1.7666667
+    functionName: PausePlaying
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 3.1666667
+    functionName: PlayAudioByName
+    data: 0TH_Transition_Out
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 4.4
     functionName: ShowIntervalInfo
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 5.633333
+    functionName: StartPlaying
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
