@@ -6348,15 +6348,15 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 4.516667
-    functionName: ShowIntervalInfo
+  - time: 4.45
+    functionName: EndTransition
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 5.5
-    functionName: EndTransition
+  - time: 4.516667
+    functionName: ShowIntervalInfo
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

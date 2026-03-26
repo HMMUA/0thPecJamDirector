@@ -59,7 +59,7 @@ public class DirectorSystem : MonoBehaviour
 
 
     [Header("视频加载位置")]
-    public string videoResourcePath = @"E:\0th\Videos"; // 视频资源的路径（相对于 Resources 文件夹）
+    public string videoResourcePath = @"F:\0th\Videos"; // 视频资源的路径（相对于 Resources 文件夹）
 
     [Header("播放器引用")]
     public VideoPlayer videoPlayer;
@@ -131,7 +131,7 @@ public class DirectorSystem : MonoBehaviour
             }
         }
 
-        if(Input.GetKeyDown(KeyCode.Space))
+        if(Input.GetKeyDown(KeyCode.L)&& Input.GetKey(KeyCode.LeftShift))
         {
             LoadPlaylistFromTable();
             AnnounceInfo("加载播放列表");

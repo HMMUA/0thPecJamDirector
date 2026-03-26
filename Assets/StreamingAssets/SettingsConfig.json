@@ -6,10 +6,10 @@
     "cookieHeader": "_vercel_jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJvd25lcklkIjoidGVhbV92NE5iTDZlY2NnbHcwVzJqMTNZZEdBRjYiLCJ1c2VySWQiOiJPdU1TQlBWbzh6ek5PMWpDdjR4WXNaalciLCJ1c2VybmFtZSI6Im5hcHRpZW1jLTk5NzEiLCJzdWIiOiJzc28tcHJvdGVjdGlvbiIsImF1ZCI6ImRvLW5vdC1sZWFrLWFyaWdhdG91LWdvemFpbWFzdS5waGkuem9uZSIsImlhdCI6MTc3NDI5NTE5Mn0.s31v7ns31X32-naB_Y6IzcvrHzgaTEBvHwtyjohU8Kg"
   },
   "DirectorSystem": {
-    "videoResourcePath": "E:\\0th\\Videos"
+    "videoResourcePath": "F:\\0th\\Videos"
   },
   "SpriteLoader": {
-    "spriteResourcePath": "E:\\0th\\Sprites",
+    "spriteResourcePath": "F:\\0th\\Textures",
     "useAbsolutePath": true
   }
 }
