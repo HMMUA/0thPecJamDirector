@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using System.IO;
 using UnityEngine.Networking;
@@ -65,6 +66,8 @@ public class DirectorSystem : MonoBehaviour
     public VideoPlayer videoPlayer;
 
     public TMP_Text infoText; // 用于显示当前视频信息的文本组件（可选）
+
+    public TMP_Text preloadProgressText; // 用于显示预加载进度的文本组件（可选）
 
 
     [Header("播放列表")]
@@ -483,6 +486,16 @@ public class DirectorSystem : MonoBehaviour
     private IEnumerator PreloadAllNetworkVideosCoroutine()
     {
         VideoData firstReadyData = null;
+        int activeRequests = 0;
+        int maxConcurrentRequests = 5;
+        int checkedCount = 0;
+        int successCount = 0;
+        int totalToCheck = playlist.Count(data => !string.IsNullOrEmpty(data.videoInternetUrl) && !data.isInterval);
+
+        if (preloadProgressText != null)
+        {
+            preloadProgressText.text = "开始下载网络视频...";
+        }
 
         foreach (var data in playlist)
         {
@@ -496,32 +509,59 @@ public class DirectorSystem : MonoBehaviour
                 {
                     Debug.LogWarning($"视频 {data.id} 没有 videoInternetUrl，跳过网络预加载。");
                 }
-                //Debug.LogWarning($"视频 {data.id} 丢失网络 URL，跳过预加载。");
                 continue;
             }
 
-            using (UnityWebRequest request = UnityWebRequest.Head(data.videoInternetUrl))
+            // 等待直到有空闲的请求槽
+            while (activeRequests >= maxConcurrentRequests)
             {
-                request.timeout = 15;
-                yield return request.SendWebRequest();
+                yield return null;
+            }
 
-                if (request.result != UnityWebRequest.Result.Success)
+            activeRequests++;
+            StartCoroutine(CheckVideoAvailability(data, () =>
+            {
+                activeRequests--;
+                checkedCount++;
+                successCount++;
+                if (preloadProgressText != null)
                 {
-                    Debug.LogWarning($"网络视频预加载失败：{data.id} {data.videoInternetUrl}，错误：{request.error}");
-                }
-                else
-                {
-                    Debug.Log($"网络视频可访问：{data.id} {data.videoInternetUrl}");
-
                     if (firstReadyData == null)
                     {
-                        firstReadyData = data;
-                        firstInternetVideoReady = true;
-                        NotifyFirstVideoReady(data);
-                        StartCoroutine(PrepareFirstVideoCoroutine(data));
+                        preloadProgressText.text = $"找到可用视频：{data.id}，准备中... 可播放 {successCount}";
+                    }
+                    else
+                    {
+                        preloadProgressText.text = $"已下载 {checkedCount}/{totalToCheck}，可播放 {successCount}";
                     }
                 }
-            }
+                if (firstReadyData == null)
+                {
+                    firstReadyData = data;
+                    firstInternetVideoReady = true;
+                    NotifyFirstVideoReady(data);
+                    StartCoroutine(PrepareFirstVideoCoroutine(data));
+                }
+            }, () =>
+            {
+                activeRequests--;
+                checkedCount++;
+                if (preloadProgressText != null)
+                {
+                    preloadProgressText.text = $"已下载 {checkedCount}/{totalToCheck}，可播放 {successCount}";
+                }
+            }));
+        }
+
+        // 等待所有请求完成
+        while (activeRequests > 0)
+        {
+            yield return null;
+        }
+
+        if (preloadProgressText != null)
+        {
+            preloadProgressText.text = $"下载完成，可播放 {successCount}/{totalToCheck}";
         }
 
         if (firstReadyData == null)
@@ -532,6 +572,26 @@ public class DirectorSystem : MonoBehaviour
         {
             Debug.Log("已完成所有网络视频预加载检测。");
             AnnounceInfo("视频预加载完成");
+        }
+    }
+
+    private IEnumerator CheckVideoAvailability(VideoData data, System.Action onSuccess, System.Action onFailure)
+    {
+        using (UnityWebRequest request = UnityWebRequest.Head(data.videoInternetUrl))
+        {
+            request.timeout = 15;
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogWarning($"网络视频预加载失败：{data.id} {data.videoInternetUrl}，错误：{request.error}");
+                onFailure?.Invoke();
+            }
+            else
+            {
+                Debug.Log($"网络视频可访问：{data.id} {data.videoInternetUrl}");
+                onSuccess?.Invoke();
+            }
         }
     }
 
@@ -640,29 +700,15 @@ public class DirectorSystem : MonoBehaviour
         if (string.IsNullOrEmpty(data.imageInternetUrl))
             yield break;
 
-        using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(data.imageInternetUrl))
+        yield return StartCoroutine(DownloadImageTextureCoroutine(data.imageInternetUrl, texture =>
         {
-            request.timeout = 15;
-            yield return request.SendWebRequest();
-
-            if (request.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogWarning($"网络封面图片准备失败：{data.id} {data.imageInternetUrl}，错误：{request.error}");
-            }
-            else
-            {
-                Texture2D texture = DownloadHandlerTexture.GetContent(request);
-                if (texture != null)
-                {
-                    data.coverSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-                    Debug.Log($"网络封面图片准备就绪：{data.id}，Sprite 已存储。");
-                }
-                else
-                {
-                    Debug.LogWarning($"网络封面图片准备失败：{data.id} {data.imageInternetUrl}，纹理为空");
-                }
-            }
-        }
+            data.coverSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+            Debug.Log($"网络封面图片准备就绪：{data.id}，Sprite 已存储。");
+        }, error =>
+        {
+            Debug.LogWarning($"网络封面图片准备失败：{data.id} {data.imageInternetUrl}，错误：{error}");
+            TryLoadLocalCoverSpriteById(data);
+        }));
     }
 
     private void NotifyFirstImageReady(VideoData data)
@@ -727,30 +773,157 @@ public class DirectorSystem : MonoBehaviour
 
     private IEnumerator LoadCoverSpriteCoroutine(VideoData data)
     {
-        using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(data.imageInternetUrl))
+        yield return StartCoroutine(DownloadImageTextureCoroutine(data.imageInternetUrl, texture =>
+        {
+            data.coverSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+            Debug.Log($"封面 Sprite 加载成功并存储：{data.id} {data.imageInternetUrl}");
+        }, error =>
+        {
+            Debug.LogWarning($"封面图片加载失败：{data.id} {data.imageInternetUrl}，错误：{error}");
+            TryLoadLocalCoverSpriteById(data);
+        }));
+    }
+
+    private IEnumerator DownloadImageTextureCoroutine(string url, System.Action<Texture2D> onSuccess, System.Action<string> onFailure)
+    {
+        using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
             request.timeout = 15;
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Accept", "image/webp,image/apng,image/*,*/*;q=0.8");
+            request.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+            request.redirectLimit = 10;
+
             yield return request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogWarning($"封面图片加载失败：{data.id} {data.imageInternetUrl}，错误：{request.error}");
+                onFailure?.Invoke(request.error);
+                yield break;
+            }
+
+            string contentType = request.GetResponseHeader("Content-Type") ?? string.Empty;
+            if (!string.IsNullOrEmpty(contentType) && !contentType.StartsWith("image/"))
+            {
+                onFailure?.Invoke($"非图片内容: {contentType}");
+                yield break;
+            }
+
+            byte[] data = request.downloadHandler?.data;
+            if (data == null || data.Length == 0)
+            {
+                onFailure?.Invoke("下载内容为空");
+                yield break;
+            }
+
+            Texture2D texture = new Texture2D(2, 2);
+            if (texture.LoadImage(data))
+            {
+                onSuccess?.Invoke(texture);
+                yield break;
+            }
+
+            Object.Destroy(texture);
+            Debug.LogWarning($"纹理解析失败：{url}，Content-Type={contentType}，大小={data.Length}。尝试备用加载...");
+            yield return StartCoroutine(DownloadImageTextureFallbackCoroutine(url, onSuccess, onFailure));
+        }
+    }
+
+    private IEnumerator DownloadImageTextureFallbackCoroutine(string url, System.Action<Texture2D> onSuccess, System.Action<string> onFailure)
+    {
+        using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(url))
+        {
+            request.timeout = 15;
+            request.SetRequestHeader("Accept", "image/webp,image/apng,image/*,*/*;q=0.8");
+            request.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+            request.redirectLimit = 10;
+
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                onFailure?.Invoke(request.error);
+                yield break;
+            }
+
+            Texture2D texture = DownloadHandlerTexture.GetContent(request);
+            if (texture != null)
+            {
+                onSuccess?.Invoke(texture);
             }
             else
             {
-                Texture2D texture = DownloadHandlerTexture.GetContent(request);
-                if (texture != null)
-                {
-                    // 创建 Sprite 并存储到 VideoData
-                    data.coverSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-                    Debug.Log($"封面 Sprite 加载成功并存储：{data.id} {data.imageInternetUrl}");
-                }
-                else
-                {
-                    Debug.LogWarning($"封面图片加载失败：{data.id} {data.imageInternetUrl}，纹理为空");
-                }
+                onFailure?.Invoke("备用加载解析失败");
             }
         }
+    }
+
+    private void TryLoadLocalCoverSpriteById(VideoData data)
+    {
+        if (data == null || string.IsNullOrEmpty(data.id))
+        {
+            Debug.LogWarning($"本地封面回退失败：VideoData 或 id 为空，无法加载本地文件。");
+            return;
+        }
+
+        Texture2D texture;
+        string foundPath;
+        if (TryLoadTextureFromStreamingAssetsById(data.id, out texture, out foundPath))
+        {
+            data.coverSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+            Debug.Log($"本地封面图片回退加载成功：{data.id}，文件：{foundPath}");
+        }
+        else
+        {
+            Debug.LogWarning($"本地封面图片回退失败：{data.id}，未找到匹配文件或解析失败。");
+        }
+    }
+
+    private bool TryLoadTextureFromStreamingAssetsById(string id, out Texture2D texture, out string path)
+    {
+        texture = null;
+        path = null;
+
+        string folder = Path.Combine(Application.streamingAssetsPath, "Texture");
+        if (!Directory.Exists(folder))
+            return false;
+
+        string[] extensions = new[] { ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tga" };
+        foreach (string ext in extensions)
+        {
+            string filePath = Path.Combine(folder, id + ext);
+            if (!File.Exists(filePath))
+                continue;
+
+            byte[] fileData;
+            try
+            {
+                fileData = File.ReadAllBytes(filePath);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"本地封面文件读取失败：{filePath}，错误：{ex.Message}");
+                continue;
+            }
+
+            if (fileData == null || fileData.Length == 0)
+                continue;
+
+            Texture2D localTexture = new Texture2D(2, 2);
+            if (localTexture.LoadImage(fileData))
+            {
+                texture = localTexture;
+                path = filePath;
+                return true;
+            }
+            else
+            {
+                Object.Destroy(localTexture);
+                Debug.LogWarning($"本地封面文件解析失败：{filePath}");
+            }
+        }
+
+        return false;
     }
 
     // ================== 功能 2：开始播放 ==================

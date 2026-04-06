@@ -10,6 +10,12 @@ public class TransitionController : MonoBehaviour
     
     private SpriteLoader spriteLoader; // Sprite 加载器引用
 
+    public AnimationAudioManager animationAudioManager; // 过渡动画音频管理器引用
+
+    public AudioClip neichangBGM; // 
+    public AudioClip waichangBGM; // 
+    public AudioClip heimaBGM; // 黑马BGM
+
 
     public SpriteRenderer[] image;//曲绘
 
@@ -64,8 +70,31 @@ public class TransitionController : MonoBehaviour
         //ResetInformation(videoData);
     }
 
+    public void SetBGM(VideoData videoData)
+    {
+        if(videoData.isMainStage == 1)
+        {
+            animationAudioManager.audioClips[0] = neichangBGM;
+            Debug.Log("已设置内场BGM");
+            return;
+        }
+        else if(videoData.isMainStage == 0 && videoData.isDarkHorse)
+        {
+            animationAudioManager.audioClips[0] = heimaBGM;
+            Debug.Log("已设置黑马BGM");
+            return;
+        }
+        else if(videoData.isMainStage == 0 && !videoData.isDarkHorse)
+        {
+            animationAudioManager.audioClips[0] = waichangBGM;
+            Debug.Log("已设置外场BGM");
+            return;
+        }
+    }
+
     public void ResetInformation(VideoData videoData)
     {
+        SetBGM(videoData);
         string id = videoData.id;
         Debug.Log($"<color=cyan>【ResetInformation开始】视频ID: {id}</color>");
 
@@ -74,6 +103,8 @@ public class TransitionController : MonoBehaviour
             Debug.LogError("【错误】视频ID为空，无法加载图片资源！");
             return;
         }
+
+
 
         // 加载曲绘
         for (int i = 0; i < image.Length; i++)
